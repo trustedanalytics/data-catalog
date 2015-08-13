@@ -1,0 +1,5 @@
+.idea/
+.tox/
+data_catalog.egg-info/
+tests/
+tools/

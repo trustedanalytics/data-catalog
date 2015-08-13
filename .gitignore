@@ -1,0 +1,21 @@
+# Python byte-compiled or optimized
+__pycache__/
+*.py[cod]
+
+# development files
+.idea/
+*.iml
+cf-ssh.yml
+
+#testing and builds
+.tox/
+data_catalog.egg-info/
+dist/
+
+# coverage
+.coverage
+coverage.xml
+
+#pylint report
+pylint_report.txt
+
