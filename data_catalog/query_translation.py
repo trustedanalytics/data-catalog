@@ -199,27 +199,26 @@ class ElasticSearchFilterExtractor(object):
             es_filter = self._translate_filter(filter_type, filter_values)
             if not es_filter:
                 continue
-            else:
-                if dataset_filtering is DataSetFiltering.PRIVATE_AND_PUBLIC:
-                    if filter_type in [IndexedMetadataEntry.ORG_UUID_FIELD,
-                                       IndexedMetadataEntry.IS_PUBLIC_FIELD]:
-                        # filters that are applied with 'or' parameter
-                        or_filters.append(es_filter)
-                    elif filter_type in [IndexedMetadataEntry.CREATION_TIME_FIELD]:
-                        # filters that are applied with the query (result are filtered)
-                        query_filters.append(es_filter)
-                    else:
-                        # filters that are applied AFTER the query (results are unfiltered)
-                        post_filters.append(es_filter)
+            if dataset_filtering is DataSetFiltering.PRIVATE_AND_PUBLIC:
+                if filter_type in [IndexedMetadataEntry.ORG_UUID_FIELD,
+                                   IndexedMetadataEntry.IS_PUBLIC_FIELD]:
+                    # filters that are applied with 'or' parameter
+                    or_filters.append(es_filter)
+                elif filter_type in [IndexedMetadataEntry.CREATION_TIME_FIELD]:
+                    # filters that are applied with the query (result are filtered)
+                    query_filters.append(es_filter)
                 else:
-                    if filter_type in [IndexedMetadataEntry.ORG_UUID_FIELD,
-                                       IndexedMetadataEntry.CREATION_TIME_FIELD,
-                                       IndexedMetadataEntry.IS_PUBLIC_FIELD]:
-                        # filters that are applied with the query (result are filtered)
-                        query_filters.append(es_filter)
-                    else:
-                        # filters that are applied AFTER the query (results are unfiltered)
-                        post_filters.append(es_filter)
+                    # filters that are applied AFTER the query (results are unfiltered)
+                    post_filters.append(es_filter)
+            else:
+                if filter_type in [IndexedMetadataEntry.ORG_UUID_FIELD,
+                                   IndexedMetadataEntry.CREATION_TIME_FIELD,
+                                   IndexedMetadataEntry.IS_PUBLIC_FIELD]:
+                    # filters that are applied with the query (result are filtered)
+                    query_filters.append(es_filter)
+                else:
+                    # filters that are applied AFTER the query (results are unfiltered)
+                    post_filters.append(es_filter)
 
         if not query_filters and or_filters:
             query_filters_dict = {'or': or_filters}
