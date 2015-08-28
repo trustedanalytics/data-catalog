@@ -102,6 +102,7 @@ class ServiceUrlsConfig(object):
         self.downloader_url_pattern = self._configure_downloader_services(services_config)
         self.dataset_publisher_url = self._cfg_data_publisher_services(services_config)
         self.user_management_uri = self._configure_user_management(services_config)
+        self.nats_url, self.nats_subject = self._configure_nats(services_config)
 
     @staticmethod
     def _get_credential(services):
@@ -125,12 +126,12 @@ class ServiceUrlsConfig(object):
         downloader_url_pattern_suffix = '/rest/filestore/{}/'
 
         try:
-            DOWNLOADER = 'downloader'
-            if DOWNLOADER in services_config:
-                downloader_config = services_config[DOWNLOADER][0]
+            downloader = 'downloader'
+            if downloader in services_config:
+                downloader_config = services_config[downloader][0]
             else:
                 downloader_config = self._find_by_name_in_service(
-                    services_config, DOWNLOADER)
+                    services_config, downloader)
             return downloader_config['credentials']['url'] + downloader_url_pattern_suffix
         except KeyError:
             return 'http://localhost:8090' + downloader_url_pattern_suffix
@@ -139,7 +140,9 @@ class ServiceUrlsConfig(object):
         dataset_publisher_url_suffix = '/rest/tables'
 
         try:
-            dataset_publisher_host = self._find_by_name_in_service(services_config, "datacatalogexport")
+            dataset_publisher_host = self._find_by_name_in_service(
+                services_config,
+                "datacatalogexport")
             dataset_publisher_host = dataset_publisher_host['credentials']['host']
             return dataset_publisher_host + dataset_publisher_url_suffix
         except KeyError:
@@ -155,7 +158,18 @@ class ServiceUrlsConfig(object):
         except KeyError:
             return 'http://localhost:9998' + user_management_url_suffix
 
+    def _configure_nats(self, services_config):
+
+        try:
+            nats = self._find_by_name_in_service(services_config, "nats-provider")
+            nats_url = nats['credentials']['url']
+            nats_subject = nats['credentials']['data-catalog-subject']
+            return nats_url, nats_subject
+        except KeyError:
+            return 'nats://localhost:4222', 'platform.data-catalog'
+
     @staticmethod
     def _find_by_name_in_service(services, name):
         found = [x for x in services['user-provided'] if x['name'] == name]
         return found[0] if found else {}
+

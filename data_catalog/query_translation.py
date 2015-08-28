@@ -32,21 +32,23 @@ class ElasticSearchQueryTranslator(object):
         Translates a Data Catalog query (string) to a string being an ElasticSearch query.
         match_all will be returned when the query is empty.
         Errors will be returned on invalid queries.
-        :param data_catalog_query: A query string from Data Catalog
-        :type data_catalog_query: str
-        :param org_uuid_list: A list of org_uuids that dataset belongs to
-        :type org_uuid_list: list[str]
-        :param dataset_filtering: Describes if the data sets we want, should be private, public or both
-                (takes values respectively: False, True, None)
-        :type dataset_filtering: DataSetFiltering
-        :returns A JSON string that is a valid ElasticSearch query
-        :rtype str
-        :raises ValueError
+        :param str data_catalog_query: A query string from Data Catalog.
+        :param list[str] org_uuid_list: A list of org_uuids that dataset belongs to.
+        :param DataSetFiltering dataset_filtering: Describes if the data sets we want
+                should be private, public or both
+                (takes values respectively: False, True, None).
+        :returns: A JSON string that is a valid ElasticSearch query.
+        :rtype str:
+        :raises ValueError:
         """
         query_dict = self._get_query_dict(data_catalog_query)
 
         es_query_base = self._base_query_creator.create_base_query(query_dict)
-        query_filters, post_filters = self._filter_translator.extract_filter(query_dict, org_uuid_list, dataset_filtering, is_admin)
+        query_filters, post_filters = self._filter_translator.extract_filter(
+            query_dict,
+            org_uuid_list,
+            dataset_filtering,
+            is_admin)
         final_query = self._combine_query_and_filters(es_query_base, query_filters, post_filters)
 
         self._add_pagination(final_query, query_dict)
@@ -119,10 +121,9 @@ class ElasticSearchBaseQueryCreator(object):
         base query and filters).
         This query is created based on the "query" field from the Data Catalog query.
         A match_all query is returned when there's no text query.
-        :param query_dict: A Data Catalog query in a form of dict (can be empty).
-        :type query_dict: dict
-        :returns A dictionary that represents a valid ElasticSearch query.
-        :rtype dict
+        :param dict query_dict: A Data Catalog query in a form of dict (can be empty).
+        :returns: A dictionary that represents a valid ElasticSearch query.
+        :rtype dict:
         """
         query_string = query_dict.get('query', None)
         if query_string:
@@ -170,12 +171,10 @@ class ElasticSearchFilterExtractor(object):
         Creates a filter for the ElasticSearch query based on the filter information
         from the Data Catalog query.
         None is returned when there are no filters.
-        :param query_dict: A Data Catalog query in a form of dict (can be empty)
-        :type query_dict: dict
-        :param org_uuid_list: List of the organisations' UUIDs
-        :type org_uuid_list: list[str]
-        :returns Two types of filters; each as a dict {'and': [filter1, filter2, ...]}
-        :rtype dict, dict
+        :param dict query_dict: A Data Catalog query in a form of dict (can be empty)
+        :param list[str] org_uuid_list: List of the organisations' UUIDs
+        :returns: Two types of filters; each as a dict {'and': [filter1, filter2, ...]}
+        :rtype (dict, dict):
         """
         filters = query_dict.get('filters', [])
         query_filters = []

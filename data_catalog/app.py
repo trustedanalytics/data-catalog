@@ -16,7 +16,6 @@
 
 # pylint: disable=invalid-name
 
-
 import logging
 import sys
 
@@ -59,7 +58,7 @@ class ExceptionHandlingApi(Api):
         if message is None:
             message = getattr(e, 'description', 'Internal Server Error')
 
-        self._log.exception("Exception with timestamp (%d) occured: %s" , timestamp, e)
+        self._log.exception("Exception with timestamp (%d) occured: %s", timestamp, e)
 
         response = {
             'message'   : message,

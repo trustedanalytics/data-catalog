@@ -149,7 +149,10 @@ class DataSetSearchResource(DataCatalogResource):
         org_uuid_list = flask.g.get('org_uuid_list')
         params = self._search.get_params_from_request_args(args)
         try:
-            return self._search.search(query_string, org_uuid_list, params['dataset_filtering'], is_admin)
+            return self._search.search(
+                query_string, org_uuid_list,
+                params['dataset_filtering'],
+                is_admin)
         except InvalidQueryError:
             abort(400, message=DataSetSearch.INVALID_QUERY_ERROR_MESSAGE)
         except IndexConnectionError:

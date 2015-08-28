@@ -48,6 +48,9 @@ There are few development tools to handle or setup data in data-catalog:
 1. Download and run User Management app (available in the same Github organization as this).
 1. Set a VCAP_SERVICES variable that would normally be set by CF.
 ```export VCAP_SERVICES='{"user-provided":[{"credentials":{"tokenKey":"http://uaa.example.com/token_key"},"tags":[],"name":"sso", "label":"user-provided"}]}'```
+1. [Install NATS service] (https://nats.io/) or download and configure Latest Events Service app (also available in this same githib organization). If using other then default in NATS settings configure VCAP_SERVICES. Latest Event Service is configured to work with subject that start with 'platform.' string. Example settings:
+``` {"credentials": {"data-catalog-subject": "platform.data-catalog", "service-creation-subject": "platform.service-creation", "url": "nats://login:password@localhost:4222"},"label": "user-provided","name": "nats-provider"}'
+```
 1. Running data-catalog service locally (first run prepares the index): `python -m data_catalog.app`
 1. Additional: some functions require Downloader and Dataset Publisher apps (also from the same Github organization as this).
 

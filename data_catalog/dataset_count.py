@@ -82,4 +82,7 @@ class DataSetCountResource(DataCatalogResource):
         args = flask.request.args
         params = self._search.get_params_from_request_args(args)
 
-        return self._search.search({}, flask.g.org_uuid_list, params['dataset_filtering'], flask.g.is_admin)['total']
+        return self._search.search({}, flask.g.org_uuid_list,
+                                   params['dataset_filtering'],
+                                   flask.g.is_admin)['total']
+

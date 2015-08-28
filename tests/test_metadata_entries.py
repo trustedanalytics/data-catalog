@@ -22,7 +22,8 @@ from mock import patch
 from ddt import ddt, data, unpack
 
 from data_catalog.metadata_entry import (MetadataIndexingTransformer, Elasticsearch,
-                                         InvalidEntryError, NotFoundError, ConnectionError)
+                                         InvalidEntryError, NotFoundError, ConnectionError,
+                                         CFNotifier)
 from tests.base_test import DataCatalogTestCase
 from data_catalog.dataset_delete import DataSetRemover, NotFoundInExternalService, DataSourceServiceError
 
@@ -86,17 +87,20 @@ class MetadataEntryTests(DataCatalogTestCase):
         super(MetadataEntryTests, self).tearDown()
         self.request_context.pop()
 
+    @patch.object(CFNotifier, 'notify')
     @patch.object(Elasticsearch, 'index')
-    def test_insertEntry_newEntry_entryCreated(self, mock_es_index):
+    def test_insertEntry_newEntry_entryCreated(self, mock_es_index, mock_notifier):
         mock_es_index.return_value = {'created': True}
         response = self.client.put(
             self.TEST_ENTRY_URL,
             data=json.dumps(self.test_entry['_source']))
         self.assertEqual(201, response.status_code)
         mock_es_index.assert_called_with(**self.index_args)
+        self.assertTrue(mock_notifier.called)
 
+    @patch.object(CFNotifier, 'notify')
     @patch.object(Elasticsearch, 'index')
-    def test_insertEntryNotAdmin_newEntry_entryCreated(self, mock_es_index):
+    def test_insertEntryNotAdmin_newEntry_entryCreated(self, mock_es_index, mock_notifier):
         mock_es_index.return_value = {'created': True}
         flask.g.is_admin = False
         flask.g.org_uuid_list = ["org02"]
@@ -105,22 +109,27 @@ class MetadataEntryTests(DataCatalogTestCase):
             data=json.dumps(self.test_entry['_source']))
         self.assertEqual(201, response.status_code)
         mock_es_index.assert_called_with(**self.index_args)
+        self.assertTrue(mock_notifier.called)
 
+    @patch.object(CFNotifier, 'notify')
     @patch.object(Elasticsearch, 'index')
-    def test_insertEntry_entryExists_entryUpdated(self, mock_es_index):
+    def test_insertEntry_entryExists_entryUpdated(self, mock_es_index, mock_notifier):
         mock_es_index.return_value = {'created': False}
         response = self.client.put(
             self.TEST_ENTRY_URL,
             data=json.dumps(self.test_entry['_source']))
         self.assertEqual(200, response.status_code)
         mock_es_index.assert_called_with(**self.index_args)
+        self.assertTrue(mock_notifier.called)
 
-    def test_insertEntry_malformedEntry_400Returned(self):
+    @patch.object(CFNotifier, 'notify')
+    def test_insertEntry_malformedEntry_400Returned(self, mock_notifier):
         del self.test_entry['_source']['format']
         response = self.client.put(
             self.TEST_ENTRY_URL,
             data=json.dumps(self.test_entry['_source']))
         self.assertEqual(400, response.status_code)
+        self.assertTrue(mock_notifier.called)
 
     @patch.object(Elasticsearch, 'get')
     def test_getEntryAdmin_entryExists_entryReturned(self, mock_es_get):

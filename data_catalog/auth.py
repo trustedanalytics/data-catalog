@@ -160,7 +160,7 @@ class _Authorization(object):
                 org_string = request.get_json(force=True).get('orgUUID', None)
                 return [org_string.lower()] if org_string else []
             except Exception as ex:  # just log any problems
-                self._log.debug("error getting organisations, using default empty set. Error: " + str(ex))
+                self._log.debug("Error getting organizations, using empty set. Error: %s", str(ex))
                 return []
         else:
             return []

@@ -6,6 +6,8 @@ __pycache__/
 .idea/
 *.iml
 cf-ssh.yml
+*.swp
+*.swo
 
 #testing and builds
 .tox/

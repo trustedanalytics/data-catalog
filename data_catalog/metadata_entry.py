@@ -28,6 +28,7 @@ from data_catalog.bases import DataCatalogResource
 from data_catalog.bases import DataCatalogModel
 from data_catalog.dataset_delete import DataSetRemover, NotFoundInExternalService, \
     DataSourceServiceError
+from data_catalog.notifier import CFNotifier
 
 
 @swagger.model
@@ -164,6 +165,7 @@ class MetadataEntryResource(DataCatalogResource):
                            self._config.elastic.elastic_port))
         self._parser = MetadataIndexingTransformer()
         self._dataset_delete = DataSetRemover()
+        self._notifier = CFNotifier(self._config)
 
     @swagger.operation(
         responseClass=QueryHit.__name__,
@@ -197,7 +199,9 @@ class MetadataEntryResource(DataCatalogResource):
         """
         Gets a metadata entry labeled with the given ID.
         """
-        if not flask.g.is_admin and self._get_org_uuid(entry_id) not in flask.g.org_uuid_list and not self._get_is_public_status(entry_id):
+        if not flask.g.is_admin \
+                and self._get_org_uuid(entry_id) not in flask.g.org_uuid_list \
+                and not self._get_is_public_status(entry_id):
             self._log.warning('Forbidden access to the resource')
             return None, 403
 
@@ -261,9 +265,9 @@ class MetadataEntryResource(DataCatalogResource):
         Puts a metadata entry in the search index under the given ID.
         """
         entry = flask.request.get_json(force=True)
-
         if not flask.g.is_admin and entry["orgUUID"] not in flask.g.org_uuid_list:
             self._log.warning('Forbidden access to the organisation')
+            self._notify(entry, 'Forbidden access to the organisation')
             return None, 403
 
         try:
@@ -271,6 +275,7 @@ class MetadataEntryResource(DataCatalogResource):
             self._parser.transform(entry)
         except InvalidEntryError as ex:
             self._log.error(ex.value)
+            self._notify(entry, 'Error durning parsing entry')
             abort(400, ex.value)
 
         try:
@@ -280,16 +285,26 @@ class MetadataEntryResource(DataCatalogResource):
                 id=entry_id,
                 body=entry
             )
+            self._notify(entry, 'Dataset added')
             if response['created']:
                 return None, 201
             else:
                 return None, 200
         except RequestError:
             self._log.exception(self.MALFORMED_ERROR_MESSAGE)
+            self._notify(entry, self.MALFORMED_ERROR_MESSAGE)
             return None, 400
         except ConnectionError:
             self._log.exception(self.NO_CONNECTION_ERROR_MESSAGE)
+            self._notify(entry, self.NO_CONNECTION_ERROR_MESSAGE)
             return None, 503
+
+    def _notify(self, entry, message):
+        """
+        helper function for formating notifier messages
+        """
+        notify_msg = '{} - {}'.format(entry.get('sourceUri', ''), message)
+        self._notifier.notify(notify_msg, entry['orgUUID'])
 
     @swagger.operation(
         responseClass=QueryHit.__name__,
@@ -328,8 +343,8 @@ class MetadataEntryResource(DataCatalogResource):
         Deletes a metadata entry labeled with the given ID.
         """
         if not flask.g.is_admin and self._get_org_uuid(entry_id) not in flask.g.org_uuid_list:
-                self._log.warning('Forbidden access to the resource')
-                return None, 403
+            self._log.warning('Forbidden access to the resource')
+            return None, 403
         token = flask.request.headers.get('Authorization')
         if not token:
             self._log.error('Authorization header not found.')

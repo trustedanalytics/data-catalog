@@ -15,8 +15,6 @@
 #
 
 import flask
-from flask import abort
-from flask_restful_swagger import swagger
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError, ConnectionError
 
@@ -42,7 +40,7 @@ class ElasticSearchAdminResource(DataCatalogResource):
         """
         self._log.info('Deleting the ElasticSearch index.')
         if not flask.g.is_admin:
-            self._log.warn('Deleting elasticSearch index aborted, not enough privileges (admin required)')
+            self._log.warn('Deleting index aborted, not enough privileges (admin required)')
             return None, 403
         self._elastic_search.indices.delete(self._config.elastic.elastic_index, ignore=404)
 
@@ -51,17 +49,16 @@ class ElasticSearchAdminResource(DataCatalogResource):
         Add all data into elastic search. Data that are corrupted are ommited
         """
         self._log.info("Adding data to elastic search")
-        # if not flask.g.is_admin:
-        #    self._log.warn('Inserting data into Elastic Search aborted, not enough privileges (admin required)')
-        #    return None, 403
+        if not flask.g.is_admin:
+            self._log.warn('Inserting data aborted, not enough privileges (admin required)')
+            return None, 403
         data = flask.request.get_json(force=True)
-        i = 0
 
         try:
             for entry in data:
                 try:
                     self._parser.transform(entry)
-                    response =self._elastic_search.index(
+                    self._elastic_search.index(
                         index=self._config.elastic.elastic_index,
                         doc_type=self._config.elastic.elastic_metadata_type,
                         id=entry["id"],
@@ -70,10 +67,10 @@ class ElasticSearchAdminResource(DataCatalogResource):
                 except InvalidEntryError as ex:
                     self._log.exception(ex)
         except RequestError:
-            self._log.exception(self.MALFORMED_ERROR_MESSAGE)
+            self._log.exception("Malformed data")
             return None, 400
         except ConnectionError:
-            self._log.exception(self.NO_CONNECTION_ERROR_MESSAGE)
+            self._log.exception("Failed connection to ElasticSearch")
             return None, 503
         self._log.info("Data added")
         return None, 200

@@ -10,6 +10,7 @@ applications:
   - sso
   - datacatalogexport
   - user-management
+  - nats-provider
   env:
     LOG_LEVEL: "INFO"
     # DO NOT TOUCH - version is changed automatically by Bumpversion
