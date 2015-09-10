@@ -40,6 +40,7 @@ There are few development tools to handle or setup data in data-catalog:
 * To switch the command line to the project's virtualenv run `source .tox/py27/bin/activate`. Run `deactivate` to disable virtualenv.
 * Downloading additional dependencies (libraries): `pip install <library_name>`
 * Updating requirements file after adding libraries: `pip freeze -l > requirements.txt`
+* Run `bumpversion patch --allow-dirty` to bump the version before committing code, that will go to master.
 
 #### Local setup
 1. [Install ElasticSearch] (https://www.elastic.co/downloads/elasticsearch) on your development machine.
@@ -111,15 +112,3 @@ GET trustedanalytics-meta/dataset/_search
 * Example of a query to our custom analyzer (called uri_analyzer)
 `GET trustedanalytics-meta/_analyze?analyzer=uri_analyzer&text='http:/some-addres.example.com/dataset'`
 
-### Bumpversion
-Bumpversion tool is used for doing versioning tasks related to releases like doing git commits (but not pushing) and tags.
-
-**Possible actions:**
-* Release: `bumpversion patch` and `git push`
-* Update minor/major version: `bumpversion minor` or `bumpversion major` followed by `git push`
-
-**Notable things:**
-* Configuration is in `.bumpversion.cfg` file.
-* Version info is updated in three files: `.bumpversion.cfg`, `data_catalog/version.py`, `manifest.yml`
-* Version tags are created automatically.
-* Commits are done automatically.

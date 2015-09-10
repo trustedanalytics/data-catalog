@@ -13,6 +13,7 @@ cf-ssh.yml
 .tox/
 data_catalog.egg-info/
 dist/
+vendor/
 
 # coverage
 .coverage

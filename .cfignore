@@ -3,3 +3,4 @@
 data_catalog.egg-info/
 tests/
 tools/
+*.zip
