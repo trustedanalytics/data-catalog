@@ -17,8 +17,10 @@
 import time
 import json
 import pynats
+import logging
 
 class CFNotifier(object):
+
     """
     Class responsible for notifing data-catalog actions
     to NAT's service.
@@ -27,6 +29,13 @@ class CFNotifier(object):
     def __init__(self, config):
         self._connection = pynats.Connection(url=config.services_url.nats_url, verbose=True)
         self._subject = config.services_url.nats_subject
+        self._log = logging.getLogger(type(self).__name__)
+
+        self._log.info(
+            'CloudFoundry notifier will talk to NATS at %s on subject %s',
+            config.services_url.nats_url,
+            config.services_url.nats_subject
+        )
 
     def notify(self, message, org_guid):
         """
