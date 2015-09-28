@@ -92,6 +92,20 @@ class QueryHit(object):
     required = resource_fields.keys()
 
 
+@swagger.model
+@swagger.nested(
+    _source=IndexedMetadataEntry.__name__
+)
+class DeleteResponse(object):
+    """Response for deleting a data set"""
+    resource_fields = {
+        'deleted_from_downloader': fields.Boolean,
+        'deleted_from_publisher': fields.Boolean,
+    }
+
+    required = resource_fields.keys()
+
+
 # TODO dirty, but testable
 CURRENT_TIME_FUNCTION = datetime.now
 
@@ -307,7 +321,7 @@ class MetadataEntryResource(DataCatalogResource):
         self._notifier.notify(notify_msg, entry['orgUUID'])
 
     @swagger.operation(
-        responseClass=QueryHit.__name__,
+        responseClass=DeleteResponse.__name__,
         nickname='delete_entry',
         parameters=[
             {
@@ -321,6 +335,11 @@ class MetadataEntryResource(DataCatalogResource):
         ],
         responseMessages=[
             {
+                'code': 200,
+                'message': 'Entry has been removed from Elastic Search. '
+                           'Status of deletion from external services is in response\'s body'
+            },
+            {
                 'code': 401,
                 'message': 'Authorization header not found.'
             },
@@ -331,10 +350,6 @@ class MetadataEntryResource(DataCatalogResource):
             {
                 'code': 404,
                 'message': 'No entry with the given ID found.'
-            },
-            {
-                'code': 503,
-                'message': 'Problem with deleting from another service.'
             }
         ]
     )
@@ -351,7 +366,7 @@ class MetadataEntryResource(DataCatalogResource):
             return None, 401
         try:
             self._dataset_delete.delete(entry_id, token)
-            return None, 200
+            return None, 204
         except NotFoundError:
             self._log.exception('Data set with the given ID not found.')
             return None, 404

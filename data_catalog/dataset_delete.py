@@ -37,8 +37,25 @@ class DataSetRemover(DataCatalogModel):
         target_uri = elastic_data["_source"]["targetUri"]
 
         self._delete_entry(entry_id)
-        self._delete_from_service(target_uri, token)
-        self._delete_from_dataset_publisher(metadata, token)
+
+        try:
+            self._delete_from_service(target_uri, token)
+            downloader_status = True
+        except Exception:
+            self._log.exception("Cannot delete from store (downloader)")
+            downloader_status = False
+
+        try:
+            self._delete_from_dataset_publisher(metadata, token)
+            publisher_status = True
+        except Exception:
+            self._log.exception("Cannot delete from store (dataset-publiser)")
+            publisher_status = False
+
+        return {
+            "deleted_from_downloader": downloader_status,
+            "deleted_from_publisher": publisher_status
+        }
 
     def _delete_from_service(self, target_uri, token):
         delete_url = self._create_delete_url(target_uri)

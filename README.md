@@ -40,7 +40,7 @@ There are few development tools to handle or setup data in data-catalog:
 * To switch the command line to the project's virtualenv run `source .tox/py27/bin/activate`. Run `deactivate` to disable virtualenv.
 * Downloading additional dependencies (libraries): `pip install <library_name>`
 * Updating requirements file after adding libraries: `pip freeze -l > requirements.txt`
-* Run `bumpversion patch --allow-dirty` to bump the version before committing code, that will go to master.
+* Install bumpversion tool using `sudo pip install bumpversion` and run `bumpversion patch --allow-dirty` to bump the version before committing code, that will go to master.
 
 #### Local setup
 1. [Install ElasticSearch] (https://www.elastic.co/downloads/elasticsearch) on your development machine.
