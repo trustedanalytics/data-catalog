@@ -25,7 +25,7 @@ from data_catalog.metadata_entry import (MetadataIndexingTransformer, Elasticsea
                                          InvalidEntryError, NotFoundError, ConnectionError,
                                          CFNotifier)
 from tests.base_test import DataCatalogTestCase
-from data_catalog.dataset_delete import DataSetRemover, NotFoundInExternalService, DataSourceServiceError
+from data_catalog.dataset_delete import DataSetRemover
 
 @ddt
 class MetadataEntryTests(DataCatalogTestCase):
@@ -186,16 +186,15 @@ class MetadataEntryTests(DataCatalogTestCase):
         response = self.client.delete(self.TEST_ENTRY_URL, None)
         self.assertEqual(401, response.status_code)
 
-    @data((NotFoundError, 404),
-          (ConnectionError, 503),
-          (NotFoundInExternalService, 404),
-          (DataSourceServiceError, 503))
-    @unpack
-    def test_deleteEntry_elasticEntryErroneous_ErrorReturned(self, side_effect, status_code):
-        self._assert_equal_delete_status_code(side_effect, status_code)
-
     @patch.object(DataSetRemover, 'delete')
-    def _assert_equal_delete_status_code(self, side_effect, status_code, mock_dataset_delete):
+    @data((NotFoundError, 404),
+          (ConnectionError, 503))
+    @unpack
+    def test_deleteEntry_elasticEntryErroneous_ErrorReturned(
+            self,
+            side_effect,
+            status_code,
+            mock_dataset_delete):
         mock_dataset_delete.side_effect = side_effect
         response = self.client.delete(
             self.TEST_ENTRY_URL,

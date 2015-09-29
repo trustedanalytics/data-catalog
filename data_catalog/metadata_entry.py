@@ -26,8 +26,7 @@ from flask_restful_swagger import swagger
 
 from data_catalog.bases import DataCatalogResource
 from data_catalog.bases import DataCatalogModel
-from data_catalog.dataset_delete import DataSetRemover, NotFoundInExternalService, \
-    DataSourceServiceError
+from data_catalog.dataset_delete import DataSetRemover
 from data_catalog.notifier import CFNotifier
 
 
@@ -313,13 +312,6 @@ class MetadataEntryResource(DataCatalogResource):
             self._notify(entry, self.NO_CONNECTION_ERROR_MESSAGE)
             return None, 503
 
-    def _notify(self, entry, message):
-        """
-        helper function for formating notifier messages
-        """
-        notify_msg = '{} - {}'.format(entry.get('sourceUri', ''), message)
-        self._notifier.notify(notify_msg, entry['orgUUID'])
-
     @swagger.operation(
         responseClass=DeleteResponse.__name__,
         nickname='delete_entry',
@@ -350,6 +342,10 @@ class MetadataEntryResource(DataCatalogResource):
             {
                 'code': 404,
                 'message': 'No entry with the given ID found.'
+            },
+            {
+                'code': 503,
+                'message': 'Problem connecting to ElasticSearch.'
             }
         ]
     )
@@ -366,19 +362,14 @@ class MetadataEntryResource(DataCatalogResource):
             return None, 401
         try:
             self._dataset_delete.delete(entry_id, token)
-            return None, 204
+            return None, 200
         except NotFoundError:
             self._log.exception('Data set with the given ID not found.')
-            return None, 404
-        except NotFoundInExternalService:
-            self._log.exception('Data set with the given ID not found in storage service.')
             return None, 404
         except ConnectionError:
             self._log.exception('No connection to the index.')
             return None, 503
-        except DataSourceServiceError:
-            self._log.exception('problem with storage service')
-            return None, 503
+
 
     @swagger.operation(
         nickname='update_attributes',
@@ -461,6 +452,13 @@ class MetadataEntryResource(DataCatalogResource):
             self._log.exception('No connection to the index.')
             return None, 503
         return
+
+    def _notify(self, entry, message):
+        """
+        helper function for formating notifier messages
+        """
+        notify_msg = '{} - {}'.format(entry.get('sourceUri', ''), message)
+        self._notifier.notify(notify_msg, entry['orgUUID'])
 
     def _get_org_uuid(self, entry_id):
         return self._get_entry(entry_id)["orgUUID"]
