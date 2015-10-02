@@ -1,5 +1,5 @@
 [![Dependency Status](https://gemnasium.com/trustedanalytics/data-catalog.svg)](https://gemnasium.com/trustedanalytics/data-catalog)
-[![Code Climate](https://codeclimate.com/repos/55e2d6926956804af0000d98/badges/f9159de81b7021f7b648/gpa.svg)](https://codeclimate.com/repos/55e2d6926956804af0000d98/feed)
+[![Code Climate](https://codeclimate.com/github/trustedanalytics/data-catalog/badges/gpa.svg)](https://codeclimate.com/github/trustedanalytics/data-catalog)
 
 data-catalog
 ============
