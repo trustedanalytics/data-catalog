@@ -33,14 +33,27 @@ There are few development tools to handle or setup data in data-catalog:
 * [Local setup tool] (#local-development-tools)
 * [Migration tool] (tools/ELASTIC_MIGRATE_README.md)
 
+### API documentation
+* Documentation is interactive, generated using [Swagger] (http://swagger.io/).
+* Run the application (described in "Development")
+* Open http://localhost:5000/api/spec.html in your browser.
+
 ### Development
 
 #### General
 * **Everything should be done in a Python virtual environment (virtualenv).**
 * To switch the command line to the project's virtualenv run `source .tox/py27/bin/activate`. Run `deactivate` to disable virtualenv.
 * Downloading additional dependencies (libraries): `pip install <library_name>`
-* Updating requirements file after adding libraries: `pip freeze -l > requirements.txt`
 * Install bumpversion tool using `sudo pip install bumpversion` and run `bumpversion patch --allow-dirty` to bump the version before committing code, that will go to master.
+
+#### Managing requirements
+* Dependencies need to be put in requirements.txt, requirements-normal.txt and requirements-native.txt.
+* This is so confusing because we need to support deployments to offline environments using the Python buildpack and some of our dependencies don't support offline mode well.
+* requirements-normal.txt contains pure Python dependencies that may be downloaded from the Internet. It's used by Tox and when downloading dependencies for offline package.
+* requirements-native.txt contains packaged that have native components and may be downloaded from the Internet. It's used by Tox and when downloading dependencies for offline package.
+* requirements.txt is requirements-normal.txt and requirements-native.txt combined (in that orded), but all the links to source control are replaced with the dependency name and version. It is used during offline package installated along the dependencies downloaded to the "vendor" folder.
+* When adding new dependencies update requirements files appropriately.
+* `pipdeptree` will help you find the dependendencies that you need to put in requirements files. They need to contain the dependencies (and their dependencies, the whole trees) of the actual app code and tests dependencies, not the quality of helper tools like pylint and pipdeptree.
 
 #### Local setup
 1. [Install ElasticSearch] (https://www.elastic.co/downloads/elasticsearch) on your development machine.
@@ -60,11 +73,6 @@ There are few development tools to handle or setup data in data-catalog:
 * Generating other set of example metadata: `python -m tools.local_index_setup generate <entry_number>`
 * To delete the index run: `python -m tools.local_index_setup delete`
 
-
-### API documentation
-* Documentation is interactive, generated using [Swagger] (http://swagger.io/).
-* Run the application (described in "Development")
-* Open http://localhost:5000/api/spec.html in your browser.
 
 ### Integration with PyCharm / IntelliJ with Python plugin
 * Run `tox` in project's source folder to create a virtualenv.
