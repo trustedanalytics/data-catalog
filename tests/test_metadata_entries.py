@@ -159,8 +159,10 @@ class MetadataEntryTests(DataCatalogTestCase):
         response = self.client.get(self.TEST_ENTRY_URL)
         self.assertEqual(503, response.status_code)
 
+    @patch.object(CFNotifier, 'notify')
+    @patch.object(Elasticsearch, 'get')
     @patch.object(DataSetRemover, 'delete')
-    def test_deleteEntry_entryExists_200returned(self, mock_dataset_delete):
+    def test_deleteEntry_entryExists_200returned(self, mock_dataset_delete, mock_get_method, mock_notifier):
         mock_dataset_delete.return_value = None
         response = self.client.delete(
             self.TEST_ENTRY_URL,
@@ -169,9 +171,10 @@ class MetadataEntryTests(DataCatalogTestCase):
         mock_dataset_delete.assert_called_with(self.get_args['id'], self.AUTH_TOKEN)
 
 
+    @patch.object(CFNotifier, 'notify')
     @patch.object(DataSetRemover, 'delete')
     @patch.object(Elasticsearch, 'get')
-    def test_deleteEntryNotAdmin_entryExists_200returned(self, mock_es_get, mock_dataset_delete):
+    def test_deleteEntryNotAdmin_entryExists_200returned(self, mock_es_get, mock_dataset_delete, mock_notifier):
         flask.g.is_admin = False
         flask.g.org_uuid_list = ["org02"]
         mock_es_get.return_value = {'_source': {'orgUUID': 'org02'}}
@@ -181,11 +184,17 @@ class MetadataEntryTests(DataCatalogTestCase):
             headers={'Authorization': self.AUTH_TOKEN})
         self.assertEqual(200, response.status_code)
         mock_dataset_delete.assert_called_with(self.get_args['id'], self.AUTH_TOKEN)
+        self.assertTrue(mock_notifier.called)
 
-    def test_deleteEntry_tokenNotFound_404Returned(self):
+    @patch.object(CFNotifier, 'notify')
+    @patch.object(Elasticsearch, 'get')
+    def test_deleteEntry_tokenNotFound_404Returned(self,  mock_get_method, mock_notifier):
         response = self.client.delete(self.TEST_ENTRY_URL, None)
         self.assertEqual(401, response.status_code)
 
+
+    @patch.object(CFNotifier, 'notify')
+    @patch.object(Elasticsearch, 'get')
     @patch.object(DataSetRemover, 'delete')
     @data((NotFoundError, 404),
           (ConnectionError, 503))
@@ -194,15 +203,18 @@ class MetadataEntryTests(DataCatalogTestCase):
             self,
             side_effect,
             status_code,
-            mock_dataset_delete):
+            mock_dataset_delete, mock_get_method, mock_notifier):
         mock_dataset_delete.side_effect = side_effect
         response = self.client.delete(
             self.TEST_ENTRY_URL,
             headers={'Authorization': self.AUTH_TOKEN})
         self.assertEqual(status_code, response.status_code)
+        self.assertTrue(mock_notifier.called)
 
+    @patch.object(CFNotifier, 'notify')
+    @patch.object(Elasticsearch, 'get')
     @patch.object(Elasticsearch, 'update')
-    def test_changeOrgUUIDField_dataSetExists_orgUUIDFieldUpdated(self, mock_update_method):
+    def test_changeOrgUUIDField_dataSetExists_orgUUIDFieldUpdated(self, mock_update_method, mock_get_method, mock_notifier):
         proper_update_request = {'doc': {self.ORG_UUID_FIELD: self.test_entry_index['_source'][self.ORG_UUID_FIELD]}}
         response = self.client.post(
             self.TEST_ENTRY_URL,
@@ -213,22 +225,29 @@ class MetadataEntryTests(DataCatalogTestCase):
             doc_type=self._config.elastic.elastic_metadata_type,
             id=self.TEST_DATA_SET_ID,
             body=proper_update_request)
+        self.assertTrue(mock_notifier.called)
 
+    @patch.object(CFNotifier, 'notify')
+    @patch.object(Elasticsearch, 'get')
     @patch.object(Elasticsearch, 'update')
-    def test_changeOrgUUID_noDataSet_404Returned(self, mock_update_method):
+    def test_changeOrgUUID_noDataSet_404Returned(self, mock_update_method, mock_get_method, mock_notifier):
         mock_update_method.side_effect = NotFoundError()
         response = self.client.post(
             self.TEST_ENTRY_URL,
             data=json.dumps(self.TEST_BODY))
         self.assertEqual(404, response.status_code)
+        self.assertTrue(mock_notifier.called)
 
+    @patch.object(CFNotifier, 'notify')
+    @patch.object(Elasticsearch, 'get')
     @patch.object(Elasticsearch, 'update')
-    def test_changeField_internalError_503Returned(self, mock_update_method):
+    def test_changeField_internalError_503Returned(self, mock_update_method, mock_get_method, mock_notifier):
         mock_update_method.side_effect = ConnectionError()
         response = self.client.post(
             self.TEST_ENTRY_URL,
             data=json.dumps(self.TEST_BODY))
         self.assertEqual(503, response.status_code)
+        self.assertTrue(mock_notifier.called)
 
     def test_changeField_badInput_400Returned(self):
         response = self.client.post(

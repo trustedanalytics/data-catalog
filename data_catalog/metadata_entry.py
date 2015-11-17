@@ -353,6 +353,7 @@ class MetadataEntryResource(DataCatalogResource):
         """
         Deletes a metadata entry labeled with the given ID.
         """
+        entry = self._get_entry(entry_id)
         if not flask.g.is_admin and self._get_org_uuid(entry_id) not in flask.g.org_uuid_list:
             self._log.warning('Forbidden access to the resource')
             return None, 403
@@ -362,12 +363,15 @@ class MetadataEntryResource(DataCatalogResource):
             return None, 401
         try:
             self._dataset_delete.delete(entry_id, token)
+            self._notify(entry, "Dataset deleted")
             return None, 200
         except NotFoundError:
             self._log.exception('Data set with the given ID not found.')
+            self._notify(entry, "Data set with the given ID not found.")
             return None, 404
         except ConnectionError:
             self._log.exception('No connection to the index.')
+            self._notify(entry, 'No connection to the index.')
             return None, 503
 
 
@@ -445,19 +449,24 @@ class MetadataEntryResource(DataCatalogResource):
                 doc_type=self._config.elastic.elastic_metadata_type,
                 id=entry_id,
                 body=body_dict)
+            is_public_status_tag = 'public' if self._get_is_public_status(entry_id) else 'private'
+            self._notify(self._get_entry(entry_id), "Dataset changed status on", is_public_status_tag)
         except NotFoundError:
             self._log.exception(exception_message)
+            self._notify(self._get_entry(entry_id), exception_message)
             abort(404)
         except ConnectionError:
             self._log.exception('No connection to the index.')
+            self._notify(self._get_entry(entry_id), 'No connection to the index.')
             return None, 503
+
         return
 
-    def _notify(self, entry, message):
+    def _notify(self, entry, message, status=None):
         """
         helper function for formating notifier messages
         """
-        notify_msg = '{} - {}'.format(entry.get('sourceUri', ''), message)
+        notify_msg = '{} - {} {}'.format(entry.get('sourceUri', ''), message, status)
         self._notifier.notify(notify_msg, entry['orgUUID'])
 
     def _get_org_uuid(self, entry_id):
