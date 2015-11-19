@@ -4,7 +4,7 @@ applications:
   command: python -m data_catalog.app
   memory: 256M
   disk_quota: 256M
-  buildpack: python_buildpack 
+  buildpack: python_buildpack
   services:
   - data-catalog-index
   - downloader
@@ -15,4 +15,4 @@ applications:
   env:
     LOG_LEVEL: "INFO"
     # DO NOT TOUCH - version is changed automatically by Bumpversion
-    VERSION: "0.4.8"
+    VERSION: "0.4.9"
