@@ -17,8 +17,8 @@
 import json
 import logging
 import requests
-
 import flask
+from werkzeug.exceptions import BadRequest
 from flask_restful import abort
 import jwt
 import jwt.exceptions
@@ -157,9 +157,9 @@ class _Authorization(object):
             return [uuid.lower().strip() for uuid in orgs_string.split(',')] if orgs_string else []
         elif request.method in ['PUT', 'POST']:
             try:
-                org_string = request.get_json(force=True).get('orgUUID', None)
+                org_string = request.get_json(force=True).get('orgUUID', '')
                 return [org_string.lower()] if org_string else []
-            except Exception as ex:  # just log any problems
+            except BadRequest as ex:
                 self._log.debug("Error getting organizations, using empty set. Error: %s", str(ex))
                 return []
         else:
