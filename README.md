@@ -1,5 +1,7 @@
-[![Dependency Status](https://gemnasium.com/trustedanalytics/data-catalog.svg)](https://gemnasium.com/trustedanalytics/data-catalog)
+[![Build Status](https://travis-ci.org/trustedanalytics/data-catalog.svg?branch=master)](https://travis-ci.org/trustedanalytics/data-catalog)
+[![Coverage Status](https://coveralls.io/repos/trustedanalytics/data-catalog/badge.svg?branch=master&service=github)](https://coveralls.io/github/trustedanalytics/data-catalog?branch=master)
 [![Code Climate](https://codeclimate.com/github/trustedanalytics/data-catalog/badges/gpa.svg)](https://codeclimate.com/github/trustedanalytics/data-catalog)
+[![Dependency Status](https://gemnasium.com/trustedanalytics/data-catalog.svg)](https://gemnasium.com/trustedanalytics/data-catalog)
 
 data-catalog
 ============
