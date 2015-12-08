@@ -39,6 +39,14 @@ class DataSetRemover(DataCatalogModel):
             "deleted_from_publisher": self._delete_from_dataset_publisher(metadata, token)
         }
 
+    def delete_public_table_from_dataset_publisher(self, entry_id, token):
+        elastic_data = self._get_entry(entry_id)
+        metadata = elastic_data["_source"]
+        if metadata["isPublic"]:
+            delete_url = self._config.services_url.dataset_publisher_url
+            params = {"scope": "public"}
+            return self._external_delete('Dataset Publisher', token, delete_url, metadata, params)
+
     def _delete_from_downloader(self, target_uri, token):
         delete_url = self._create_downloader_delete_url(target_uri)
         return self._external_delete('Downloader', token, delete_url)
@@ -47,18 +55,19 @@ class DataSetRemover(DataCatalogModel):
         delete_url = self._config.services_url.dataset_publisher_url
         return self._external_delete('Dataset Publisher', token, delete_url, metadata)
 
-    def _external_delete(self, service_name, token, url, data=None):
+    def _external_delete(self, service_name, token, url, data=None, parameters=None):
         """
         Deletes a data set from an external service.
         :param str service_name: Service name. Only used in logging.
         :param str token: Security token that will be sent with the request.
         :param str url: URL to which to send DELETE message.
         :param dict data: Data to send in the DELETE request.
+        :param dict parameters: parameters to send in the DELETE request
         :return: True if delete was successful, false otherwise
         :rtype: bool
         """
         self._log.info('Sending delete request to: %s', url)
-        response = requests.delete(url, headers={'Authorization': token}, json=data)
+        response = requests.delete(url, headers={'Authorization': token}, json=data, params=parameters)
         if response.status_code == 200:
             return True
         else:

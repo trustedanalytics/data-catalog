@@ -428,7 +428,6 @@ class MetadataEntryResource(DataCatalogResource):
 
         Example:
         {
-            "orgUUID": ["org-id-01", "public"],
             "title": "A new, better title for this data set!"
         }
         """
@@ -442,6 +441,17 @@ class MetadataEntryResource(DataCatalogResource):
             self._log.warn('Request body is invalid. Data: %s', flask.request.data)
             abort(400)
         body_dict = {'doc': body}
+
+        try:
+            if 'isPublic' in body:
+                token = self._get_token_from_request()
+                self._dataset_delete.delete_public_table_from_dataset_publisher(entry_id, token)
+        except NotFoundError:
+            self._log.exception('Data set with the given ID not found.')
+            return None, 404
+        except ConnectionError:
+            self._log.exception('No connection to the index.')
+            return None, 503
 
         try:
             self._elastic_search.update(
@@ -485,3 +495,10 @@ class MetadataEntryResource(DataCatalogResource):
         except NotFoundError:
             self._log.exception("Not found")
             abort(404)
+
+    def _get_token_from_request(self):
+        token = flask.request.headers.get('Authorization')
+        if not token:
+            self._log.error('Authorization header not found.')
+            return None, 401
+        return token

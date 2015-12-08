@@ -63,8 +63,8 @@ class DataSetDeleteTest(DataCatalogTestCase):
             {'deleted_from_publisher': external_delete_status, 'deleted_from_downloader': external_delete_status})
         calls = [
             call(self._config.services_url.downloader_url_pattern.format(self.DATABASE_ID),
-                 json=None, headers={'Authorization': self.AUTH_TOKEN}),
+                 json=None, params=None, headers={'Authorization': self.AUTH_TOKEN}),
             call(self._config.services_url.dataset_publisher_url,
-                 json=self.MOCK_GET["_source"], headers={'Authorization': self.AUTH_TOKEN})
+                 json=self.MOCK_GET["_source"], params=None, headers={'Authorization': self.AUTH_TOKEN})
         ]
         self._mock_req_delete.assert_has_calls(calls)

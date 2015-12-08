@@ -23,7 +23,7 @@ from ddt import ddt, data, unpack
 
 from data_catalog.metadata_entry import (MetadataIndexingTransformer, Elasticsearch,
                                          InvalidEntryError, NotFoundError, ConnectionError,
-                                         CFNotifier)
+                                         CFNotifier, MetadataEntryResource)
 from tests.base_test import DataCatalogTestCase
 from data_catalog.dataset_delete import DataSetRemover
 
@@ -34,6 +34,7 @@ class MetadataEntryTests(DataCatalogTestCase):
     CATEGORY_FIELD = 'category'
     ORG_UUID_FIELD = 'orgUUID'
     AUTH_TOKEN = 'authorization-token'
+    IS_PUBLIC_FIELD = 'isPublic'
 
     def setUp(self):
         super(MetadataEntryTests, self).setUp()
@@ -71,7 +72,7 @@ class MetadataEntryTests(DataCatalogTestCase):
         }
 
         self.TEST_ENTRY_URL = '{0}/{1}'.format('/rest/datasets', self.TEST_DATA_SET_ID)
-        self.TEST_BODY = {self.ORG_UUID_FIELD: self.test_entry_index['_source'][self.ORG_UUID_FIELD]}
+        self.TEST_BODY = {self.IS_PUBLIC_FIELD: self.test_entry_index['_source'][self.IS_PUBLIC_FIELD]}
         self.get_args = {
             'index': self._config.elastic.elastic_index,
             'doc_type': self._config.elastic.elastic_metadata_type,
@@ -214,12 +215,18 @@ class MetadataEntryTests(DataCatalogTestCase):
     @patch.object(CFNotifier, 'notify')
     @patch.object(Elasticsearch, 'get')
     @patch.object(Elasticsearch, 'update')
-    def test_changeOrgUUIDField_dataSetExists_orgUUIDFieldUpdated(self, mock_update_method, mock_get_method, mock_notifier):
-        proper_update_request = {'doc': {self.ORG_UUID_FIELD: self.test_entry_index['_source'][self.ORG_UUID_FIELD]}}
+    @patch.object(DataSetRemover, 'delete_public_table_from_dataset_publisher')
+    @patch.object(MetadataEntryResource, '_get_token_from_request', return_value=AUTH_TOKEN)
+    def test_changeField_dataSetExists_FieldUpdated(self, mock_get_token, mock_dataset_remover, mock_update_method, mock_get_method, mock_notifier):
+        proper_update_request = {'doc': {self.IS_PUBLIC_FIELD: self.test_entry_index['_source'][self.IS_PUBLIC_FIELD]}}
         response = self.client.post(
             self.TEST_ENTRY_URL,
             data=json.dumps(self.TEST_BODY))
         self.assertEqual(200, response.status_code)
+        mock_dataset_remover.assert_called_with(
+            self.TEST_DATA_SET_ID,
+            self.AUTH_TOKEN
+        )
         mock_update_method.assert_called_with(
             index=self._config.elastic.elastic_index,
             doc_type=self._config.elastic.elastic_metadata_type,
@@ -230,18 +237,25 @@ class MetadataEntryTests(DataCatalogTestCase):
     @patch.object(CFNotifier, 'notify')
     @patch.object(Elasticsearch, 'get')
     @patch.object(Elasticsearch, 'update')
-    def test_changeOrgUUID_noDataSet_404Returned(self, mock_update_method, mock_get_method, mock_notifier):
+    @patch.object(DataSetRemover, 'delete_public_table_from_dataset_publisher')
+    @patch.object(MetadataEntryResource, '_get_token_from_request', return_value=AUTH_TOKEN)
+    def test_change_noDataSet_404Returned(self, mock_get_token, mock_dataset_remover, mock_update_method, mock_get_method, mock_notifier):
         mock_update_method.side_effect = NotFoundError()
         response = self.client.post(
             self.TEST_ENTRY_URL,
             data=json.dumps(self.TEST_BODY))
         self.assertEqual(404, response.status_code)
         self.assertTrue(mock_notifier.called)
+        mock_dataset_remover.assert_called_with(
+            self.TEST_DATA_SET_ID,
+            self.AUTH_TOKEN
+        )
 
     @patch.object(CFNotifier, 'notify')
     @patch.object(Elasticsearch, 'get')
     @patch.object(Elasticsearch, 'update')
-    def test_changeField_internalError_503Returned(self, mock_update_method, mock_get_method, mock_notifier):
+    @patch.object(DataSetRemover, 'delete_public_table_from_dataset_publisher')
+    def test_changeField_internalError_503Returned(self, mock_dataset_remover, mock_update_method, mock_get_method, mock_notifier):
         mock_update_method.side_effect = ConnectionError()
         response = self.client.post(
             self.TEST_ENTRY_URL,
