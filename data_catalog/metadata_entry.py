@@ -472,7 +472,7 @@ class MetadataEntryResource(DataCatalogResource):
 
         return
 
-    def _notify(self, entry, message, status=None):
+    def _notify(self, entry, message, status=""):
         """
         helper function for formating notifier messages
         """
