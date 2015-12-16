@@ -14,13 +14,16 @@
 # limitations under the License.
 #
 
-import requests
-from requests.auth import AuthBase
+from __future__ import print_function
+
 import json
 import sys
 import urlparse
 import argparse
 
+from jwt.utils import base64url_decode
+import requests
+from requests.auth import AuthBase
 
 FETCH_URL = "rest/datasets"
 DELETE_URL = "rest/datasets/admin/elastic"
@@ -40,9 +43,11 @@ class Authorization(AuthBase):
 
 def fetch_data(base_url, token):
     full_path = urlparse.urljoin(base_url, FETCH_URL)
+    print('Calling URL', full_path)
     r = requests.get(full_path, auth=Authorization(token))
-    print r.url
+    r.raise_for_status()
     data = json.loads(r.content)
+    
     if data and "hits" in data:
         query = json.dumps({"size": data["total"]})
         r = requests.get(full_path, params={'query': query}, auth=Authorization(token))
@@ -53,18 +58,18 @@ def fetch_data(base_url, token):
         f = open(DEFAULT_FILE, 'w')
         f.write(json.dumps(new_data, sort_keys=True, indent=2, separators=(',', ': ')))
         f.close()
-        print "data fetched and saved in:", DEFAULT_FILE
+        print("data fetched and saved in:", DEFAULT_FILE)
     else:
-        print "no data or error recived:", r.status_code, data
+        print("no data or error recived:", r.status_code, data)
 
 
 def delete_index(base_url, token):
     full_path = urlparse.urljoin(base_url, DELETE_URL)
     r = requests.delete(full_path, auth=Authorization(token))
     if (r.status_code == 200):
-        print "indexes deleted"
+        print("indexes deleted")
     else:
-        print "problem with delete: ", r.status_code, r.text
+        print("problem with delete: ", r.status_code, r.text)
 
 def insert_data(base_url, token):
 
@@ -73,9 +78,9 @@ def insert_data(base_url, token):
     full_path = urlparse.urljoin(base_url, INSERT_URL)
     r = requests.put(full_path, auth=Authorization(token), data=data)
     if (r.status_code == 200):
-        print "data inserted"
+        print("data inserted")
     else:
-        print "problem with insert: ", r.status_code, r.text
+        print("problem with insert: ", r.status_code, r.text)
 
 class CheckUrlSchemeAction(argparse.Action):
     def __call__(self, parser, namespace, base_url, option_string=None):
@@ -95,7 +100,30 @@ def parse_args():
     parser.add_argument('token',help="OAUTH token. For delete and insert it must have admin privileges")
     parser.add_argument('base_url', nargs='?', default=LOCALHOST_URL, action=CheckUrlSchemeAction, help="base URL for datacatalog service. Default: %(default)s")
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def is_admin(user_token):
+    """
+    :param str user_token: User's OAuth 2 token payload (containing "bearer" prefix).
+    :return: True if the user is an admin.
+    :rtype: bool
+    """
+    # get token without "bearer"
+    token = user_token.split()[1]
+    # take the middle part with payload
+    token_payload_based = token.split('.')[1]
+    token_payload_str = base64url_decode(token_payload_based.encode()).decode()
+    token_payload = json.loads(token_payload_str)
+    return 'console.admin' in token_payload['scope']
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    
+    if not is_admin(args.token):
+        sys.exit('ERROR! You must have admin privilages (console.admin scope) to use this tool.')            
+    
     if args.fetch:
         fetch_data(args.base_url, args.token)
     elif args.delete:
@@ -103,8 +131,5 @@ def parse_args():
     elif args.insert:
         insert_data(args.base_url, args.token)
     else:
-        print "?"
-
-if __name__ == '__main__':
-    parse_args()
+        print("This shouldn't happen...")
 
