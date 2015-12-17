@@ -130,11 +130,11 @@ def configure_logging():
     root_logger.addHandler(negative_handler)
 
 
-if __name__ == "__main__":
+def get_app():
+    """
+    To be used by the WSGI server.
+    """
     configure_logging()
     prepare_environment()
-    app.run(
-        host='0.0.0.0',
-        port=_CONFIG.app_port,
-        debug=_CONFIG.log_level == 'DEBUG',
-        use_reloader=False)
+    return app
+

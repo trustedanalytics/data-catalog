@@ -16,6 +16,10 @@ It is used to store, retrieve and to search over metadata describing data sets d
 
 ## Basic handling
 
+### Pushing to CloudFoundry
+* `./cf_build.sh`
+* `cf push`
+
 ### Initial setup
 * You need Python (of course).
 * Install pip: `sudo apt-get install python-pip`
@@ -67,7 +71,7 @@ There are few development tools to handle or setup data in data-catalog:
 1. [Install NATS service] (https://nats.io/) or download and configure Latest Events Service app (also available in this same githib organization). If using other then default in NATS settings configure VCAP_SERVICES. Latest Event Service is configured to work with subject that start with 'platform.' string. Example settings:
 ``` {"credentials": {"data-catalog-subject": "platform.data-catalog", "service-creation-subject": "platform.service-creation", "url": "nats://login:password@localhost:4222"},"label": "user-provided","name": "nats-provider"}'```
 
-1. Running data-catalog service locally (first run prepares the index): `python -m data_catalog.app`
+1. Running data-catalog service locally (first run prepares the index): `./run_app.sh`
 1. Additional: some functions require Downloader and Dataset Publisher apps (also from the same Github organization as this).
 
 #### Local development tools

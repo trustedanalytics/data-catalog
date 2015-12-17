@@ -4,6 +4,7 @@ elasticsearch==2.1.0
 Flask==0.10.1
 Flask-RESTful==0.3.4
 flask-restful-swagger==0.19
+gunicorn==19.4.1
 itsdangerous==0.24
 Jinja2==2.8
 MarkupSafe==0.23
