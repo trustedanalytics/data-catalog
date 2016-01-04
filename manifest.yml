@@ -2,7 +2,7 @@
 applications:
 - name: data-catalog
   command: gunicorn 'data_catalog.app:get_app()' --bind :$PORT --enable-stdio-inheritance --workers `nproc`
-  memory: 256M
+  memory: 512M
   disk_quota: 256M
   buildpack: python_buildpack
   services:
@@ -15,4 +15,4 @@ applications:
   env:
     LOG_LEVEL: "INFO"
     # DO NOT TOUCH - version is changed automatically by Bumpversion
-    VERSION: "0.4.14"
+    VERSION: "0.4.15"

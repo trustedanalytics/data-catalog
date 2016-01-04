@@ -15,4 +15,4 @@
 #
 
 # DO NOT TOUCH - version is changed automatically by Bumpversion
-VERSION = '0.4.14'
+VERSION = '0.4.15'
