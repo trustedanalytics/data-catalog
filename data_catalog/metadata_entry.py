@@ -362,9 +362,9 @@ class MetadataEntryResource(DataCatalogResource):
             self._log.error('Authorization header not found.')
             return None, 401
         try:
-            self._dataset_delete.delete(entry_id, token)
+            deletion_status = self._dataset_delete.delete(entry_id, token)
             self._notify(entry, "Dataset deleted")
-            return None, 200
+            return deletion_status, 200
         except NotFoundError:
             self._log.exception('Data set with the given ID not found.')
             self._notify(entry, "Data set with the given ID not found.")
