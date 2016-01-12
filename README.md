@@ -17,13 +17,14 @@ It is used to store, retrieve and to search over metadata describing data sets d
 ## Basic handling
 
 ### Pushing to CloudFoundry
+* Install and upgrade pip (this may require you to relog): `sudo apt-get install python-pip && sudo pip install --upgrade pip`
 * `./cf_build.sh`
 * `cf push`
 
 ### Initial setup
 * You need Python (of course).
-* Install pip: `sudo apt-get install python-pip`
 * Install Tox: `sudo pip install tox`
+* Necessary for compilation of Python extensions: `sudo apt-get install python-dev`
 
 ### Tests
 * Be in `data-catalog` directory (project's source directory).
