@@ -80,7 +80,7 @@ def insert_data(base_url, token):
     if (r.status_code == 200):
         print("data inserted")
     else:
-        print("problem with insert: ", r.status_code, r.text)
+        print("problem with insert:", r.status_code, r.text)
 
 class CheckUrlSchemeAction(argparse.Action):
     def __call__(self, parser, namespace, base_url, option_string=None):
@@ -109,6 +109,7 @@ def is_admin(user_token):
     :return: True if the user is an admin.
     :rtype: bool
     """
+    print('Provided token:', user_token)
     # get token without "bearer"
     token = user_token.split()[1]
     # take the middle part with payload
@@ -120,7 +121,7 @@ def is_admin(user_token):
 
 if __name__ == '__main__':
     args = parse_args()
-    
+
     if not is_admin(args.token):
         sys.exit('ERROR! You must have admin privilages (console.admin scope) to use this tool.')            
     

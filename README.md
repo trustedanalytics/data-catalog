@@ -23,12 +23,12 @@ It is used to store, retrieve and to search over metadata describing data sets d
 
 ### Initial setup
 * You need Python (of course).
-* Install Tox: `sudo pip install tox`
+* Install Tox: `sudo pip install --upgrade tox`
 * Necessary for compilation of Python extensions: `sudo apt-get install python-dev`
 
 ### Tests
 * Be in `data-catalog` directory (project's source directory).
-* Run: `tox` (first run will take long) or `tox -r` (if you have added something to requirements.txt)
+* Run: `tox` (first run will take long)
 
 ### Configuration
 Configuration is handled through environment variables. They can be set in the "env" section of the CF (Cloud Foundry) manifest.
@@ -51,7 +51,7 @@ There are few development tools to handle or setup data in data-catalog:
 * **Everything should be done in a Python virtual environment (virtualenv).**
 * To switch the command line to the project's virtualenv run `source .tox/py27/bin/activate`. Run `deactivate` to disable virtualenv.
 * Downloading additional dependencies (libraries): `pip install <library_name>`
-* Install bumpversion tool using `sudo pip install bumpversion` and run `bumpversion patch --allow-dirty` to bump the version before committing code, that will go to master.
+* Run (in virtualenv) `bumpversion patch --allow-dirty` to bump the version before committing code that will go to master.
 
 #### Managing requirements
 * Dependencies need to be put in requirements.txt, requirements-normal.txt and requirements-native.txt.

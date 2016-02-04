@@ -24,7 +24,7 @@ from flask import Flask
 from flask_restful import Api
 from flask_restful_swagger import swagger
 from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import ConnectionError
+import elasticsearch.exceptions
 
 from data_catalog.auth import Security
 from data_catalog.elastic_admin import ElasticSearchAdminResource
@@ -68,40 +68,6 @@ class ExceptionHandlingApi(Api):
         return self.make_response(response, code)
 
 
-_CONFIG = DCConfig()
-
-app = Flask(__name__)
-# our RESTful API wrapped with Swagger documentation
-api = swagger.docs(
-    ExceptionHandlingApi(app),
-    apiVersion=VERSION,
-    description='Data Catalog - enables search, retrieval and storage of metadata '
-                'describing data sets. ')
-
-api.add_resource(DataSetSearchResource, _CONFIG.app_base_path)
-api.add_resource(MetadataEntryResource, _CONFIG.app_base_path + '/<entry_id>')
-api.add_resource(DataSetCountResource, _CONFIG.app_base_path + '/count')
-api.add_resource(ElasticSearchAdminResource, _CONFIG.app_base_path + '/admin/elastic')
-
-ignore_for_auth = ['/api/spec']
-security = Security(ignore_for_auth)
-app.before_request(security.authenticate)
-
-
-def prepare_environment():
-    """Prepares ElasticSearch index for work if it's not yet ready."""
-    elastic_search = Elasticsearch('{}:{}'.format(
-        _CONFIG.elastic.elastic_hostname,
-        _CONFIG.elastic.elastic_port))
-    try:
-        if not elastic_search.indices.exists(_CONFIG.elastic.elastic_index):
-            elastic_search.indices.create(
-                index=_CONFIG.elastic.elastic_index,
-                body=_CONFIG.elastic.metadata_index_setup)
-    except ConnectionError:
-        sys.exit("Can't start because of no connection to ElasticSearch.")
-
-
 class PositiveMessageFilter(logging.Filter):
 
     """
@@ -113,7 +79,37 @@ class PositiveMessageFilter(logging.Filter):
         return record.levelno not in (logging.WARNING, logging.ERROR)
 
 
-def configure_logging():
+def _prepare_environment(config):
+    """
+    Prepares ElasticSearch index for work if it's not yet ready.
+    :param `DCConfig` config:
+    """
+    elastic_search = Elasticsearch('{}:{}'.format(
+        config.elastic.elastic_hostname,
+        config.elastic.elastic_port))
+    try:
+        elastic_search.indices.create(
+            index=config.elastic.elastic_index,
+            body=config.elastic.metadata_index_setup)
+    except elasticsearch.exceptions.RequestError as ex:
+        # Multiple workers can be created at the same time and there's no way
+        # to tell ElasticSearch to create index only if it's not already created,
+        # so we need to attempt to create it and ignore the error that it throws
+        # when attemting to create an existing index.
+        if 'IndexAlreadyExists' in ex.args[1]:
+            print('400 caused by "index already created" - no need to panic.')
+        else:
+            raise ex
+    except elasticsearch.exceptions.TransportError:
+        print("Can't start because of no connection to ElasticSearch.")
+        raise
+
+
+def _configure_logging(config):
+    """
+    Configures proper logging for the application.
+    :param `DCConfig` config:
+    """
     log_formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
 
     positive_handler = logging.StreamHandler(sys.stdout)
@@ -125,16 +121,36 @@ def configure_logging():
     negative_handler.setFormatter(log_formatter)
 
     root_logger = logging.getLogger()
-    root_logger.setLevel(_CONFIG.log_level)
+    root_logger.setLevel(config.log_level)
     root_logger.addHandler(positive_handler)
     root_logger.addHandler(negative_handler)
+
+
+def _create_app(config):
+    app = Flask(__name__)
+    # our RESTful API wrapped with Swagger documentation
+    api = swagger.docs(
+        ExceptionHandlingApi(app),
+        apiVersion=VERSION,
+        description='Data Catalog - enables search, retrieval and storage of metadata '
+                    'describing data sets. ')
+
+    api.add_resource(DataSetSearchResource, config.app_base_path)
+    api.add_resource(MetadataEntryResource, config.app_base_path + '/<entry_id>')
+    api.add_resource(DataSetCountResource, config.app_base_path + '/count')
+    api.add_resource(ElasticSearchAdminResource, config.app_base_path + '/admin/elastic')
+
+    security = Security(auth_exceptions=['/api/spec'])
+    app.before_request(security.authenticate)
+
+    return app
 
 
 def get_app():
     """
     To be used by the WSGI server.
     """
-    configure_logging()
-    prepare_environment()
-    return app
-
+    config = DCConfig()
+    _configure_logging(config)
+    _prepare_environment(config)
+    return _create_app(config)

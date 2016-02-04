@@ -21,6 +21,7 @@ from mock import MagicMock
 
 from data_catalog.configuration import (DCConfig, VCAP_APP_PORT, VCAP_SERVICES, VCAP_APPLICATION,
                                         LOG_LEVEL)
+import data_catalog.app
 
 
 class DataCatalogTestCase(unittest.TestCase):
@@ -28,9 +29,8 @@ class DataCatalogTestCase(unittest.TestCase):
         setup_fake_env()
         self._config = DCConfig()
 
-        from data_catalog import app
-        app.app.config['TESTING'] = True
-        self.app = app.app
+        self.app = data_catalog.app._create_app(self._config)
+        self.app.config['TESTING'] = True
         self.client = self.app.test_client()
 
         self._disable_authentication()
