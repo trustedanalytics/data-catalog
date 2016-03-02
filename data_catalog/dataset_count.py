@@ -16,7 +16,6 @@
 
 import flask
 
-from flask_restful_swagger import swagger
 from elasticsearch import Elasticsearch
 
 from data_catalog.bases import DataCatalogResource
@@ -37,44 +36,6 @@ class DataSetCountResource(DataCatalogResource):
                            self._config.elastic.elastic_port))
         self._search = DataSetSearch()
 
-
-    @swagger.operation(
-        responseClass='integer',
-        nickname='data_set_count',
-        parameters=[
-            {
-                'name': 'orgs',
-                'description': 'A list of org UUIDs.',
-                'required': False,
-                'allowMultiple': True,
-                'dataType': 'list',
-                'paramType': 'query'
-
-            },
-            {
-                'name': 'onlyPrivate',
-                'description': 'Returns a list of the private data sets only',
-                'required': False,
-                'allowMultiple': False,
-                'dataType': 'boolean',
-                'paramType': 'query'
-            },
-            {
-                'name': 'onlyPublic',
-                'description': 'Returns a list of the public data sets only.',
-                'required': False,
-                'allowMultiple': False,
-                'dataType': 'boolean',
-                'paramType': 'query'
-            }
-        ],
-        responseMessages=[
-            {
-                'code': 200,
-                'message': 'Data set count returned.'
-            }
-        ]
-    )
     def get(self):
         """
         Get the number of current data sets in the index per organisation.

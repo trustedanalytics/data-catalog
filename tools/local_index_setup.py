@@ -21,7 +21,7 @@ import sys
 import time
 from datetime import datetime
 
-from data_catalog.metadata_entry import IndexedMetadataEntry
+from data_catalog.metadata_entry import CATEGORY_FIELD, CREATION_TIME_FIELD, TITLE_FIELD
 from data_catalog.configuration import DCConfig
 from elasticsearch import Elasticsearch
 
@@ -101,7 +101,7 @@ def generate_example_metadata(entry_number):
     entries = []
     for i in range(entry_number):
         entry = {
-            IndexedMetadataEntry.CATEGORY_FIELD: CATEGORIES[i % len(CATEGORIES)],
+            CATEGORY_FIELD: CATEGORIES[i % len(CATEGORIES)],
             'dataSample': DATA_SAMPLE,
             'format': 'CSV',
             'recordCount': random.randint(10, 100000),
@@ -111,8 +111,8 @@ def generate_example_metadata(entry_number):
             'storeType': 'hdfs',
             'isPublic': random.choice([True, False]),
             'orgUUID': org_uuids[i % len(org_uuids)],
-            IndexedMetadataEntry.TITLE_FIELD: titles[i % len(titles)],
-            IndexedMetadataEntry.CREATION_TIME_FIELD: get_random_ISO8601_date(),
+            TITLE_FIELD: titles[i % len(titles)],
+            CREATION_TIME_FIELD: get_random_ISO8601_date(),
         }
         entries.append(entry)
     with open(EXAMPLE_METADATA_FILE, 'w') as metadata_file:

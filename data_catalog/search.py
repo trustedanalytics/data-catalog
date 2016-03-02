@@ -15,36 +15,13 @@
 #
 
 import flask
-import flask_restful.fields as fields
 
 from elasticsearch.exceptions import RequestError, ConnectionError
 from flask_restful import abort
-from flask_restful_swagger import swagger
 
 from data_catalog.bases import DataCatalogModel, DataCatalogResource
-from data_catalog.metadata_entry import IndexedMetadataEntryWithID
 from data_catalog.query_translation import ElasticSearchQueryTranslator, \
     InvalidQueryError, DataSetFiltering
-
-
-@swagger.model
-@swagger.nested(
-    hits=IndexedMetadataEntryWithID.__name__
-)
-class SearchHits(object):
-
-    """
-    Contains the list of query results.
-    """
-
-    resource_fields = {
-        'hits': fields.List(fields.Nested(IndexedMetadataEntryWithID.resource_fields)),
-        'total': fields.Integer,
-        'categories': fields.List(fields.String),
-        'formats': fields.List(fields.String)
-    }
-
-    required = resource_fields.keys()
 
 
 class DataSetSearchResource(DataCatalogResource):
@@ -57,59 +34,6 @@ class DataSetSearchResource(DataCatalogResource):
         super(DataSetSearchResource, self).__init__()
         self._search = DataSetSearch()
 
-    @swagger.operation(
-        responseClass=SearchHits.__name__,
-        nickname='search',
-        parameters=[
-            {
-                'name': 'query',
-                'description': 'A query JSON object.',
-                'required': False,
-                'allowMultiple': False,
-                'dataType': 'string',
-                'paramType': 'query'
-            },
-            {
-                'name': 'orgs',
-                'description': 'A list of org UUIDs.',
-                'required': False,
-                'allowMultiple': True,
-                'dataType': 'list',
-                'paramType': 'query'
-
-            },
-            {
-                'name': 'onlyPrivate',
-                'description': 'Returns a list of the private data sets only',
-                'required': False,
-                'allowMultiple': False,
-                'dataType': 'boolean',
-                'paramType': 'query'
-            },
-            {
-                'name': 'onlyPublic',
-                'description': 'Returns a list of the public data sets only.',
-                'required': False,
-                'allowMultiple': False,
-                'dataType': 'boolean',
-                'paramType': 'query'
-            }
-        ],
-        responseMessages=[
-            {
-                'code': 200,
-                'message': 'Result queries returned.'
-            },
-            {
-                'code': 400,
-                'message': 'Invalid or malformed query.'
-            },
-            {
-                'code': 500,
-                'message': 'Internal error.'
-            }
-        ]
-    )
     def get(self):
         """
         Do a search for data sets.

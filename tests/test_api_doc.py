@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2015 Intel Corporation
+# Copyright (c) 2016 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,5 +14,12 @@
 # limitations under the License.
 #
 
-# DO NOT TOUCH - version is changed automatically by Bumpversion
-VERSION = '0.4.21'
+import json
+
+from .base_test import dc_client
+
+
+def test_get_swagger_json(dc_client):
+    response = dc_client.get('/api-docs')
+    assert response.status_code == 200
+    assert json.loads(response.data)

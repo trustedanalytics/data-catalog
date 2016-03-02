@@ -17,7 +17,8 @@
 import json
 import logging
 
-from data_catalog.metadata_entry import IndexedMetadataEntry
+from data_catalog.metadata_entry import (CERBERUS_SCHEMA, ORG_UUID_FIELD, CREATION_TIME_FIELD,
+                                         IS_PUBLIC_FIELD)
 
 
 class ElasticSearchQueryTranslator(object):
@@ -199,20 +200,17 @@ class ElasticSearchFilterExtractor(object):
             if not es_filter:
                 continue
             if dataset_filtering is DataSetFiltering.PRIVATE_AND_PUBLIC:
-                if filter_type in [IndexedMetadataEntry.ORG_UUID_FIELD,
-                                   IndexedMetadataEntry.IS_PUBLIC_FIELD]:
+                if filter_type in [ORG_UUID_FIELD, IS_PUBLIC_FIELD]:
                     # filters that are applied with 'or' parameter
                     or_filters.append(es_filter)
-                elif filter_type in [IndexedMetadataEntry.CREATION_TIME_FIELD]:
+                elif filter_type in [CREATION_TIME_FIELD]:
                     # filters that are applied with the query (result are filtered)
                     query_filters.append(es_filter)
                 else:
                     # filters that are applied AFTER the query (results are unfiltered)
                     post_filters.append(es_filter)
             else:
-                if filter_type in [IndexedMetadataEntry.ORG_UUID_FIELD,
-                                   IndexedMetadataEntry.CREATION_TIME_FIELD,
-                                   IndexedMetadataEntry.IS_PUBLIC_FIELD]:
+                if filter_type in [ORG_UUID_FIELD, CREATION_TIME_FIELD, IS_PUBLIC_FIELD]:
                     # filters that are applied with the query (result are filtered)
                     query_filters.append(es_filter)
                 else:
@@ -247,7 +245,7 @@ class ElasticSearchFilterExtractor(object):
 
         filter_type, filter_values = query_filter.items()[0]
 
-        if filter_type not in IndexedMetadataEntry.resource_fields:
+        if filter_type not in CERBERUS_SCHEMA:
             self._log_and_raise_invalid_query(
                 "Can't filter over field {}, because it isn't in the mapping.".format(filter_type))
         if not filter_values:
@@ -278,7 +276,7 @@ class ElasticSearchFilterExtractor(object):
                 time_range['to'] = values[1]
             return {
                 'range': {
-                    IndexedMetadataEntry.CREATION_TIME_FIELD: time_range
+                    CREATION_TIME_FIELD: time_range
                 }
             }
 
@@ -287,7 +285,7 @@ class ElasticSearchFilterExtractor(object):
         elif not isinstance(filter_values, list):
             self._log_and_raise_invalid_query("Filter values aren't a list.")
 
-        if filter_type != IndexedMetadataEntry.CREATION_TIME_FIELD:
+        if filter_type != CREATION_TIME_FIELD:
             return create_normal_filter(filter_values)
         else:
             return create_time_filter(filter_values)

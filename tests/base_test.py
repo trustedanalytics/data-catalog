@@ -14,14 +14,34 @@
 # limitations under the License.
 #
 
+from contextlib import contextmanager
 import os
 import unittest
-from contextlib import contextmanager
+
 from mock import MagicMock
+import pytest
 
 from data_catalog.configuration import (DCConfig, VCAP_APP_PORT, VCAP_SERVICES, VCAP_APPLICATION,
                                         LOG_LEVEL)
 import data_catalog.app
+
+
+@pytest.fixture
+def dc_client():
+    with fake_env():
+        config = DCConfig()
+        app = data_catalog.app._create_app(config)
+    app.config['TESTING'] = True
+    app_client = app.test_client()
+    _disable_authentication(app_client)
+    return app_client
+
+
+def _disable_authentication(app_client):
+    mock = MagicMock()
+    mock.mocked_function.side_effect = lambda: None
+    app_client.application.before_request_funcs = {None: [mock.mocked_function]}
+    return mock.mocked_function
 
 
 class DataCatalogTestCase(unittest.TestCase):
@@ -33,16 +53,11 @@ class DataCatalogTestCase(unittest.TestCase):
         self.app.config['TESTING'] = True
         self.client = self.app.test_client()
 
-        self._disable_authentication()
+        self.mocked_authenticate = _disable_authentication(self.client)
 
     def tearDown(self):
         clean_fake_env()
 
-    def _disable_authentication(self):
-        mock = MagicMock()
-        mock.mocked_function.side_effect = lambda: None
-        self.client.application.before_request_funcs = {None: [mock.mocked_function]}
-        self.mocked_authenticate = mock.mocked_function
 
 def setup_fake_env():
     """

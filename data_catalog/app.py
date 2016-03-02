@@ -22,7 +22,6 @@ import sys
 from time import time
 from flask import Flask
 from flask_restful import Api
-from flask_restful_swagger import swagger
 from elasticsearch import Elasticsearch
 import elasticsearch.exceptions
 
@@ -32,7 +31,7 @@ from data_catalog.configuration import DCConfig
 from data_catalog.metadata_entry import MetadataEntryResource
 from data_catalog.search import DataSetSearchResource
 from data_catalog.dataset_count import DataSetCountResource
-from data_catalog.version import VERSION
+from data_catalog.api_doc import ApiDoc
 
 
 class ExceptionHandlingApi(Api):
@@ -128,19 +127,16 @@ def _configure_logging(config):
 
 def _create_app(config):
     app = Flask(__name__)
-    # our RESTful API wrapped with Swagger documentation
-    api = swagger.docs(
-        ExceptionHandlingApi(app),
-        apiVersion=VERSION,
-        description='Data Catalog - enables search, retrieval and storage of metadata '
-                    'describing data sets. ')
+    api = ExceptionHandlingApi(app)
+    api_doc_route = '/api-docs'
 
     api.add_resource(DataSetSearchResource, config.app_base_path)
+    api.add_resource(ApiDoc, api_doc_route)
     api.add_resource(MetadataEntryResource, config.app_base_path + '/<entry_id>')
     api.add_resource(DataSetCountResource, config.app_base_path + '/count')
     api.add_resource(ElasticSearchAdminResource, config.app_base_path + '/admin/elastic')
 
-    security = Security(auth_exceptions=['/api/spec'])
+    security = Security(auth_exceptions=[api_doc_route])
     app.before_request(security.authenticate)
 
     return app

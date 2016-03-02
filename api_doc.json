@@ -1,0 +1,466 @@
+{
+"swagger": "2.0",
+    "produces": [
+        "application/json"
+    ],
+    "info": {
+        "version": "0.4.21",
+        "title": "Data Catalog API",
+        "description": "Enables search, retrieval and storageof metadata describing data sets."
+    },
+    "paths": {
+        "/rest/datasets": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Result queries returned.",
+                        "schema": {
+                            "$ref": "#/definitions/SearchHits"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or malformed query."
+                    },
+                    "500": {
+                        "description": "Internal error."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "onlyPrivate",
+                        "required": false,
+                        "in": "query",
+                        "type": "boolean",
+                        "description": "Returns a list of the private data sets only"
+                    },
+                    {
+                        "name": "query",
+                        "required": false,
+                        "in": "query",
+                        "type": "string",
+                        "description": "A query JSON object."
+                    },
+                    {
+                        "name": "onlyPublic",
+                        "required": false,
+                        "in": "query",
+                        "type": "boolean",
+                        "description": "Returns a list of the public data sets only."
+                    },
+                    {
+                        "name": "orgs",
+                        "required": false,
+                        "in": "query",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "A list of org UUIDs."
+                    }
+                ],
+                "tags": [
+                    "rest/datasets"
+                ],
+                "description": "Query should be in this format:\n{\n    \"query\": SEARCH_TEXT,\n    \"filters\":[\n        {FILTERED_FIELD_NAME: [FIELD_VALUE_1, FIELD_VALUE_1]}\n    ],\n    \"from\": FROM_HIT_NUMBER,\n    \"size\": NUMBER_OF_HITS\n}\n\nAll query fields are optional.\nWhen filtering by time ranges, you must supply exactly two filter field values.\n-1 can be used as infinity.\n\n\"from\" and \"size\" are used for pagination of search queries.\nIf we get 20 hits for a query, we can set \"from\" and \"size\" to 10\nto get the second half of hits.\n\nFilter examples:\n\n{\"creationTime\": [-1, \"2015-02-24T14:56\"]} <- all until 2015-02-24T14:56\n{\"format\": [\"csv\", \"json\"]} <- all CSV and JSON data sets\n\nField 'orgs' should be in a form of a list of org uuids separated with a coma\nexample: orguuid-01,oruuid-02\n\nFields 'onlyPublic' and 'onlyPrivate' should have boolean value (true or false).\nIn addition to a query, they allow to choose only private data sets or only public ones.\nThey are mutually exclusive!",
+                "summary": "Do a search for data sets",
+                "operationId": "get_data_set_search_resource"
+            }
+        },
+        "/rest/datasets/count": {
+            "get": {
+                "tags": [
+                    "rest/datasets"
+                ],
+                "operationId": "get_data_set_count_resource",
+                "responses": {
+                    "200": {
+                        "description": "Data set count returned.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "onlyPrivate",
+                        "required": false,
+                        "in": "query",
+                        "type": "boolean",
+                        "description": "Returns a list of the private data sets only"
+                    },
+                    {
+                        "name": "orgs",
+                        "required": false,
+                        "in": "query",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "A list of org UUIDs."
+                    },
+                    {
+                        "name": "onlyPublic",
+                        "required": false,
+                        "in": "query",
+                        "type": "boolean",
+                        "description": "Returns a list of the public data sets only."
+                    }
+                ],
+                "summary": "Get the number of current data sets in the index per organisation"
+            }
+        },
+        "/rest/datasets/{entry_id}": {
+            "put": {
+                "responses": {
+                    "200": {
+                        "description": "Entry updated."
+                    },
+                    "201": {
+                        "description": "Entry created."
+                    },
+                    "400": {
+                        "description": "Putting data set in index failed: malformed data in meta data fields."
+                    },
+                    "403": {
+                        "description": "Forbidden access to required organisation"
+                    },
+                    "503": {
+                        "description": "Putting data set in index failed: failed to connect to ElasticSearch."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "entry_id",
+                        "required": true,
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of a metadata entry (data set)."
+                    },
+                    {
+                        "required": true,
+                        "in": "body",
+                        "name": "body",
+                        "schema": {
+                            "$ref": "#/definitions/InputMetadataEntry"
+                        },
+                        "description": "JSON-formatted metadata entry."
+                    }
+                ],
+                "tags": [
+                    "rest/datasets"
+                ],
+                "summary": "Puts a metadata entry in the search index under the given ID",
+                "consumes": [
+                    "application/x-www-form-urlencoded",
+                    "multipart/form-data"
+                ],
+                "operationId": "put_metadata_entry_resource"
+            },
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "Data set attributes are updated."
+                    },
+                    "400": {
+                        "description": "Wrong input data."
+                    },
+                    "403": {
+                        "description": "Forbidden access to the resource"
+                    },
+                    "404": {
+                        "description": "No entry with the given ID found."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "entry_id",
+                        "required": true,
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of a metadata entry (data set)."
+                    },
+                    {
+                        "required": true,
+                        "in": "body",
+                        "name": "body",
+                        "schema": {
+                            "$ref": "#/definitions/InputMetadataEntry"
+                        },
+                        "description": "Attributes with values to change."
+                    }
+                ],
+                "tags": [
+                    "rest/datasets"
+                ],
+                "description": "The body of the POST method should be formed in a following way:\n\n{\n    \"argumentName\": [\"value01\", \"value02\"]\n}\n\nThe value of a given argument will replace current value for this argument\nin the specified metadata entry.\n\nExample:\n{\n    \"title\": \"A new, better title for this data set!\"\n}",
+                "summary": "Updates specified attributes of metadata entry with the given ID",
+                "operationId": "post_metadata_entry_resource"
+            },
+            "delete": {
+                "tags": [
+                    "rest/datasets"
+                ],
+                "operationId": "delete_metadata_entry_resource",
+                "responses": {
+                    "200": {
+                        "description": "Entry has been removed from Elastic Search. Status of deletion from external services is in response's body",
+                        "schema": {
+                            "$ref": "#/definitions/DeleteResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Authorization header not found."
+                    },
+                    "403": {
+                        "description": "Forbidden access to the resource"
+                    },
+                    "404": {
+                        "description": "No entry with the given ID found."
+                    },
+                    "503": {
+                        "description": "Problem connecting to ElasticSearch."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "entry_id",
+                        "required": true,
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the metadata entry describing some data set."
+                    }
+                ],
+                "summary": "Deletes a metadata entry labeled with the given ID"
+            },
+            "get": {
+                "tags": [
+                    "rest/datasets"
+                ],
+                "operationId": "get_metadata_entry_resource",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/QueryHit"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden access to the resource"
+                    },
+                    "404": {
+                        "description": "No entry with the given ID found."
+                    },
+                    "503": {
+                        "description": "Problem while connecting to the index."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "entry_id",
+                        "required": true,
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the metadata entry describing some data set."
+                    }
+                ],
+                "summary": "Gets a metadata entry labeled with the given ID"
+            }
+        }
+    },
+    "responses": {},
+    "tags": [
+        {
+            "name": "default",
+            "description": "Default namespace"
+        },
+        {
+            "name": "rest/datasets",
+            "description": "Data Catalog - enables search, retrieval and storage of metadata describing data sets."
+        }
+    ],
+    "basePath": "/",
+    "definitions": {
+        "SearchHits": {
+            "required": [
+                "categories",
+                "formats",
+                "hits",
+                "total"
+            ],
+            "properties": {
+                "hits": {
+                    "items": {
+                        "$ref": "#/definitions/InputMetadataEntryWithID"
+                    },
+                    "type": "array"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "categories": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "formats": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            }
+        },
+        "QueryHit": {
+            "required": [
+                "_id",
+                "_index",
+                "_source",
+                "_type",
+                "_version",
+                "found"
+            ],
+            "properties": {
+                "_type": {
+                    "type": "string"
+                },
+                "_index": {
+                    "type": "string"
+                },
+                "_source": {
+                    "$ref": "#/definitions/InputMetadataEntry"
+                },
+                "_version": {
+                    "type": "integer"
+                },
+                "found": {
+                    "type": "boolean"
+                },
+                "_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "InputMetadataEntryWithID": {
+            "required": [
+                "category",
+                "dataSample",
+                "format",
+                "id",
+                "isPublic",
+                "orgUUID",
+                "recordCount",
+                "size",
+                "sourceUri",
+                "targetUri",
+                "title"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "dataSample": {
+                    "type": "string"
+                },
+                "sourceUri": {
+                    "type": "string"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "creationTime": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "isPublic": {
+                    "type": "boolean"
+                },
+                "orgUUID": {
+                    "type": "string"
+                },
+                "targetUri": {
+                    "type": "string"
+                },
+                "recordCount": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "DeleteResponse": {
+            "required": [
+                "deleted_from_downloader",
+                "deleted_from_publisher"
+            ],
+            "properties": {
+                "deleted_from_publisher": {
+                    "type": "boolean"
+                },
+                "deleted_from_downloader": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "InputMetadataEntry": {
+            "required": [
+                "category",
+                "dataSample",
+                "format",
+                "isPublic",
+                "orgUUID",
+                "recordCount",
+                "size",
+                "sourceUri",
+                "targetUri",
+                "title"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "dataSample": {
+                    "type": "string"
+                },
+                "sourceUri": {
+                    "type": "string"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "orgUUID": {
+                    "type": "string"
+                },
+                "isPublic": {
+                    "type": "boolean"
+                },
+                "creationTime": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "targetUri": {
+                    "type": "string"
+                },
+                "recordCount": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "consumes": [
+        "application/json"
+    ]
+}

@@ -16,16 +16,17 @@
 
 import json
 import unittest
+
 import flask
-
-from mock import patch
 from ddt import ddt, data, unpack
+from mock import patch
 
+from data_catalog.dataset_delete import DataSetRemover
 from data_catalog.metadata_entry import (MetadataIndexingTransformer, Elasticsearch,
                                          InvalidEntryError, NotFoundError, ConnectionError,
                                          CFNotifier, MetadataEntryResource)
 from tests.base_test import DataCatalogTestCase
-from data_catalog.dataset_delete import DataSetRemover
+
 
 @ddt
 class MetadataEntryTests(DataCatalogTestCase):

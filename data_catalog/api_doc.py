@@ -14,5 +14,22 @@
 # limitations under the License.
 #
 
-# DO NOT TOUCH - version is changed automatically by Bumpversion
-VERSION = '0.4.21'
+import os
+import json
+
+from flask_restful import Resource
+
+
+class ApiDoc(Resource):
+    """
+    Imports Swagger 2.0 json from file and creates endpoint with imported data.
+    """
+
+    def __init__(self):
+        super(ApiDoc, self).__init__()
+        json_path = os.path.join(os.path.dirname(__file__), '../api_doc.json')
+        with open(json_path) as api_doc:
+            self.data = json.load(api_doc)
+
+    def get(self):
+        return self.data
