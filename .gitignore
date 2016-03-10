@@ -6,6 +6,7 @@ __pycache__/
 .idea/
 *.iml
 cf-ssh.yml
+.cache/
 *.swp
 *.swo
 
