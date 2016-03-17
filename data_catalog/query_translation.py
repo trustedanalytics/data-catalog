@@ -167,7 +167,8 @@ class ElasticSearchFilterExtractor(object):
     def __init__(self):
         self._log = logging.getLogger(type(self).__name__)
 
-    def extract_filter(self, query_dict, org_uuid_list, dataset_filtering, is_admin):
+    def extract_filter(self, query_dict, org_uuid_list, #pylint: disable=too-many-branches
+                       dataset_filtering, is_admin):
         """
         Creates a filter for the ElasticSearch query based on the filter information
         from the Data Catalog query.
@@ -177,6 +178,7 @@ class ElasticSearchFilterExtractor(object):
         :returns: Two types of filters; each as a dict {'and': [filter1, filter2, ...]}
         :rtype (dict, dict):
         """
+        # TODO this should totally be rewritten to have less branches
         filters = query_dict.get('filters', [])
         query_filters = []
         post_filters = []

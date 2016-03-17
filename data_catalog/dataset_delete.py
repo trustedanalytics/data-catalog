@@ -14,11 +14,19 @@
 # limitations under the License.
 #
 
+"""
+Removing of data sets.
+"""
+
 import requests
 from data_catalog.bases import DataCatalogModel
 
 
 class DataSetRemover(DataCatalogModel):
+
+    """
+    Framework-agnostic object for removing data sets.
+    """
 
     def delete(self, entry_id, token):
         """
@@ -39,7 +47,14 @@ class DataSetRemover(DataCatalogModel):
             "deleted_from_publisher": self._delete_from_dataset_publisher(metadata, token)
         }
 
-    def delete_public_table_from_dataset_publisher(self, entry_id, token):
+    def delete_public_from_hive(self, entry_id, token):
+        """
+        Attempts to remove a public data set from dataset-publisher.
+        Doesn't do anything with non-public data sets.
+        :param str entry_id:
+        :param token:
+        :return: True if something was deleted, False otherwise.
+        """
         elastic_data = self._get_entry(entry_id)
         metadata = elastic_data["_source"]
         if metadata["isPublic"]:
@@ -67,7 +82,10 @@ class DataSetRemover(DataCatalogModel):
         :rtype: bool
         """
         self._log.info('Sending delete request to: %s', url)
-        response = requests.delete(url, headers={'Authorization': token}, json=data, params=parameters)
+        response = requests.delete(url,
+                                   headers={'Authorization': token},
+                                   json=data,
+                                   params=parameters)
         if response.status_code == 200:
             return True
         else:

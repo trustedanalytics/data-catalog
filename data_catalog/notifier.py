@@ -14,16 +14,21 @@
 # limitations under the License.
 #
 
-import time
+"""
+Communication with NATS.
+"""
+
 import json
-import pynats
 import logging
+import time
+
+import pynats
+
 
 class CFNotifier(object):
 
     """
-    Class responsible for notifing data-catalog actions
-    to NAT's service.
+    Class responsible for notifying NATS service of Data Catalog's actions.
     """
 
     def __init__(self, config):

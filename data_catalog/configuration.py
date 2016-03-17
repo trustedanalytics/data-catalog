@@ -14,6 +14,10 @@
 # limitations under the License.
 #
 
+"""
+Configuration for the Data Catalog app.
+"""
+
 import json
 import os
 from data_catalog import configuration_const
@@ -68,10 +72,17 @@ class DCConfig(object):
 
 
 class NoConfigEnvError(Exception):
+    """
+    Environment variable that should contain configuration is missing.
+    """
     pass
 
 
 class ElasticConfig(object):
+
+    """
+    Config for ElasticSearch connection.
+    """
 
     def __init__(self, services_config):
         self.elastic_index = 'trustedanalytics-meta'
@@ -97,6 +108,10 @@ class ElasticConfig(object):
 
 
 class ServiceUrlsConfig(object):
+
+    """
+    Addresses of external dependencies.
+    """
 
     def __init__(self, services_config):
         self.uaa_token_uri = self._get_uaa_token_uri(services_config)

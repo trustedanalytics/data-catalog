@@ -14,6 +14,10 @@
 # limitations under the License.
 #
 
+"""
+Endpoint for administrative tasks on Data Catalog and its data.
+"""
+
 import flask
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError, ConnectionError
@@ -42,7 +46,9 @@ class ElasticSearchAdminResource(DataCatalogResource):
         if not flask.g.is_admin:
             self._log.warn('Deleting index aborted, not enough privileges (admin required)')
             return None, 403
-        self._elastic_search.indices.delete(self._config.elastic.elastic_index, ignore=404)
+        self._elastic_search.indices.delete( # pylint: disable=unexpected-keyword-arg
+            self._config.elastic.elastic_index,
+            ignore=404)
 
     def put(self):
         """

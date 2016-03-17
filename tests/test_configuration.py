@@ -19,7 +19,7 @@ import os
 import unittest
 
 from data_catalog.configuration import DCConfig, NoConfigEnvError, VCAP_SERVICES
-from base_test import fake_env, clean_fake_env
+from .conftest import fake_env, clean_fake_env
 
 
 class ConfigTests(unittest.TestCase):

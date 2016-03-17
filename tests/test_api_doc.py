@@ -16,8 +16,6 @@
 
 import json
 
-from .base_test import dc_client
-
 
 def test_get_swagger_json(dc_client):
     response = dc_client.get('/api-docs')

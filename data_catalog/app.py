@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# pylint: disable=invalid-name
+from __future__ import print_function
 
 import logging
 import sys
@@ -45,9 +45,7 @@ class ExceptionHandlingApi(Api):
         super(ExceptionHandlingApi, self).__init__(wsgi_app)
 
     def handle_error(self, e):
-        DEFAULT_ERROR_STATUS = 500
-
-        code = getattr(e, 'code', DEFAULT_ERROR_STATUS)
+        code = getattr(e, 'code', 500)
         #converting to msecimport
         timestamp = int(time()*1000)
 
@@ -76,6 +74,16 @@ class PositiveMessageFilter(logging.Filter):
     @staticmethod
     def filter(record):
         return record.levelno not in (logging.WARNING, logging.ERROR)
+
+
+def get_app():
+    """
+    To be used by the WSGI server.
+    """
+    config = DCConfig()
+    _configure_logging(config)
+    _prepare_environment(config)
+    return _create_app(config)
 
 
 def _prepare_environment(config):
@@ -140,13 +148,3 @@ def _create_app(config):
     app.before_request(security.authenticate)
 
     return app
-
-
-def get_app():
-    """
-    To be used by the WSGI server.
-    """
-    config = DCConfig()
-    _configure_logging(config)
-    _prepare_environment(config)
-    return _create_app(config)

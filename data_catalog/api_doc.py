@@ -14,6 +14,10 @@
 # limitations under the License.
 #
 
+"""
+Endpoint serving Data Catalog's Swagger documentation.
+"""
+
 import os
 import json
 
@@ -32,4 +36,7 @@ class ApiDoc(Resource):
             self.data = json.load(api_doc)
 
     def get(self):
+        """
+        Flask-Restful HTTP GET.
+        """
         return self.data

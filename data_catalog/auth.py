@@ -131,8 +131,8 @@ class _Authorization(object):
     def get_user_scope(self, token, request, is_admin):
         requested_orgs = self._get_requested_orgs(request)
         user_orgs = self._get_orgs_user_has_access(token)
-        self._log.debug('User belongs to orgs: {}/nUser requested access to: {}'
-                        .format(user_orgs, requested_orgs))
+        self._log.debug('User belongs to orgs: %s/nUser requested access to: %s',
+                        user_orgs, requested_orgs)
         if is_admin:
             return requested_orgs
 
@@ -158,8 +158,11 @@ class _Authorization(object):
         elif request.method in ['PUT', 'POST']:
             try:
                 org_string = request.get_json(force=True).get('orgUUID', '')
-                return [org_string.lower()] if org_string else []
-            except BadRequest as ex:
+                if org_string:
+                    return [org_name.lower() for org_name in org_string.split(',')]
+                else:
+                    return []
+            except (BadRequest, AttributeError) as ex:
                 self._log.debug("Error getting organizations, using empty set. Error: %s", str(ex))
                 return []
         else:

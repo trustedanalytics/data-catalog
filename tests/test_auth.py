@@ -14,17 +14,17 @@
 # limitations under the License.
 #
 
-import unittest
-import jwt
-import flask
-
 import StringIO
 
+import flask
+import json
+import jwt
+import pytest
 from ddt import ddt, data, unpack
 from mock import patch, MagicMock
 from werkzeug.exceptions import Unauthorized, Forbidden
 
-from data_catalog.auth import Security, _Authorization, _UserCantAccessOrg, _InvalidOrgId
+from data_catalog.auth import Security, _Authorization, _UserCantAccessOrg
 from tests.base_test import DataCatalogTestCase
 
 TEST_UAA_KEY = 'test_key', 'test_alg'
@@ -132,3 +132,34 @@ class AuthorizationTests(DataCatalogTestCase):
         with request_context:
             with self.assertRaises(_UserCantAccessOrg):
                 self.authorization.get_user_scope('fake_token', flask.request, False)
+
+
+@pytest.fixture
+def authorization(fake_env_vars):
+    return _Authorization()
+
+
+@pytest.mark.parametrize('path, orgs', [
+    ('/?orgs=abra,kadabra', ['abra', 'kadabra']),
+    ('/?orgs=abra', ['abra']),
+    ('/', []),
+])
+def test_get_requested_orgs_get(path, orgs, authorization, dc_app):
+    with dc_app.test_request_context(path,
+                                     method='GET'):
+        assert authorization._get_requested_orgs(flask.request) == orgs
+
+
+@pytest.mark.parametrize('body_str, orgs', [
+    (json.dumps({'orgUUID': 'bla'}), ['bla']),
+    (json.dumps({'orgUUID': 'bla,qwe'}), ['bla', 'qwe']),
+    (json.dumps({'orgUUID': ''}), []),
+    (json.dumps(['blabla']), []),
+    (None, []),
+])
+@pytest.mark.parametrize('method', ['PUT', 'POST'])
+def test_get_requested_orgs_put_post(body_str, orgs, method, authorization, dc_app):
+    with dc_app.test_request_context('/i/dont/care',
+                                     method=method,
+                                     input_stream=StringIO.StringIO(body_str)):
+        assert authorization._get_requested_orgs(flask.request) == orgs

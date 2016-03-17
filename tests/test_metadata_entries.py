@@ -216,7 +216,7 @@ class MetadataEntryTests(DataCatalogTestCase):
     @patch.object(CFNotifier, 'notify')
     @patch.object(Elasticsearch, 'get')
     @patch.object(Elasticsearch, 'update')
-    @patch.object(DataSetRemover, 'delete_public_table_from_dataset_publisher')
+    @patch.object(DataSetRemover, 'delete_public_from_hive')
     @patch.object(MetadataEntryResource, '_get_token_from_request', return_value=AUTH_TOKEN)
     def test_changeField_dataSetExists_FieldUpdated(self, mock_get_token, mock_dataset_remover, mock_update_method, mock_get_method, mock_notifier):
         proper_update_request = {'doc': {self.IS_PUBLIC_FIELD: self.test_entry_index['_source'][self.IS_PUBLIC_FIELD]}}
@@ -238,7 +238,7 @@ class MetadataEntryTests(DataCatalogTestCase):
     @patch.object(CFNotifier, 'notify')
     @patch.object(Elasticsearch, 'get')
     @patch.object(Elasticsearch, 'update')
-    @patch.object(DataSetRemover, 'delete_public_table_from_dataset_publisher')
+    @patch.object(DataSetRemover, 'delete_public_from_hive')
     @patch.object(MetadataEntryResource, '_get_token_from_request', return_value=AUTH_TOKEN)
     def test_change_noDataSet_404Returned(self, mock_get_token, mock_dataset_remover, mock_update_method, mock_get_method, mock_notifier):
         mock_update_method.side_effect = NotFoundError()
@@ -255,7 +255,7 @@ class MetadataEntryTests(DataCatalogTestCase):
     @patch.object(CFNotifier, 'notify')
     @patch.object(Elasticsearch, 'get')
     @patch.object(Elasticsearch, 'update')
-    @patch.object(DataSetRemover, 'delete_public_table_from_dataset_publisher')
+    @patch.object(DataSetRemover, 'delete_public_from_hive')
     def test_changeField_internalError_503Returned(self, mock_dataset_remover, mock_update_method, mock_get_method, mock_notifier):
         mock_update_method.side_effect = ConnectionError()
         response = self.client.post(

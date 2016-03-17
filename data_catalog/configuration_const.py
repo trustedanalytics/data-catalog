@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+"""
+Configuration values that change very seldom.
+"""
 
 METADATA_MAPPING = {
     '_all': {

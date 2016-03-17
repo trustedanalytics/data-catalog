@@ -14,13 +14,13 @@
 # limitations under the License.
 #
 
-import flask
-
 from datetime import datetime
+from urlparse import urlparse
+
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError, ConnectionError, NotFoundError
+import flask
 from flask import abort
-from urlparse import urlparse
 from cerberus import Validator
 
 from data_catalog.bases import DataCatalogResource
@@ -241,7 +241,7 @@ class MetadataEntryResource(DataCatalogResource):
         try:
             if 'isPublic' in body:
                 token = self._get_token_from_request()
-                self._dataset_delete.delete_public_table_from_dataset_publisher(entry_id, token)
+                self._dataset_delete.delete_public_from_hive(entry_id, token)
         except NotFoundError:
             self._log.exception('Data set with the given ID not found.')
             return None, 404
@@ -256,7 +256,9 @@ class MetadataEntryResource(DataCatalogResource):
                 id=entry_id,
                 body=body_dict)
             is_public_status_tag = 'public' if self._get_is_public_status(entry_id) else 'private'
-            self._notify(self._get_entry(entry_id), "Dataset changed status on", is_public_status_tag)
+            self._notify(self._get_entry(entry_id),
+                         "Dataset changed status on",
+                         is_public_status_tag)
         except NotFoundError:
             self._log.exception(exception_message)
             self._notify(self._get_entry(entry_id), exception_message)

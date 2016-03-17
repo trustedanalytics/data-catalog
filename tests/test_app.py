@@ -36,10 +36,8 @@ def mock_es_create():
 
 
 @pytest.fixture
-def test_config():
-    with base_test.fake_env():
-        config = DCConfig()
-    return config
+def test_config(fake_env_vars):
+    return DCConfig()
 
 
 def test_first_prepare_environment(mock_es_create, test_config):
