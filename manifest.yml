@@ -6,7 +6,7 @@ applications:
   disk_quota: 256M
   buildpack: python_buildpack
   services:
-  - data-catalog-index-newer
+  - data-catalog-index
   - downloader
   - sso
   - datacatalogexport
@@ -15,4 +15,4 @@ applications:
   env:
     LOG_LEVEL: "INFO"
     # DO NOT TOUCH - version is changed automatically by Bumpversion
-    VERSION: "0.4.22"
+    VERSION: "0.4.23"
