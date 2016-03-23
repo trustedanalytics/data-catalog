@@ -15,6 +15,9 @@ cf-ssh.yml
 data_catalog.egg-info/
 dist/
 vendor/
+build_info.ini
+data-catalog*.zip
+src/
 
 # coverage
 .coverage

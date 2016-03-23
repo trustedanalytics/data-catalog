@@ -11,7 +11,7 @@ It is used to store, retrieve and to search over metadata describing data sets d
 
 ## Pushing to CloudFoundry
 * Install and upgrade pip (this may require you to relog): `sudo apt-get install python-pip && sudo pip install --upgrade pip`
-* `./cf_build.sh`
+* `./pack.sh`
 * `cf push`
 
 ## API documentation
