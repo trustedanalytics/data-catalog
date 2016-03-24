@@ -1,5 +1,4 @@
-{
-"swagger": "2.0",
+{"swagger": "2.0",
     "produces": [
         "application/json"
     ],
@@ -61,7 +60,7 @@
                 "tags": [
                     "rest/datasets"
                 ],
-                "description": "Query should be in this format:\n{\n    \"query\": SEARCH_TEXT,\n    \"filters\":[\n        {FILTERED_FIELD_NAME: [FIELD_VALUE_1, FIELD_VALUE_1]}\n    ],\n    \"from\": FROM_HIT_NUMBER,\n    \"size\": NUMBER_OF_HITS\n}\n\nAll query fields are optional.\nWhen filtering by time ranges, you must supply exactly two filter field values.\n-1 can be used as infinity.\n\n\"from\" and \"size\" are used for pagination of search queries.\nIf we get 20 hits for a query, we can set \"from\" and \"size\" to 10\nto get the second half of hits.\n\nFilter examples:\n\n{\"creationTime\": [-1, \"2015-02-24T14:56\"]} <- all until 2015-02-24T14:56\n{\"format\": [\"csv\", \"json\"]} <- all CSV and JSON data sets\n\nField 'orgs' should be in a form of a list of org uuids separated with a coma\nexample: orguuid-01,oruuid-02\n\nFields 'onlyPublic' and 'onlyPrivate' should have boolean value (true or false).\nIn addition to a query, they allow to choose only private data sets or only public ones.\nThey are mutually exclusive!",
+                "description": "Query should be in this format:\n{\n    \"query\": SEARCH_TEXT,\n    \"filters\":[\n        {FILTERED_FIELD_NAME: [FIELD_VALUE_1, FIELD_VALUE_1]}\n    ],\n    \"from\": FROM_HIT_NUMBER,\n    \"size\": NUMBER_OF_HITS\n}\n\nAll query fields are optional.\nWhen filtering by time ranges, you must supply exactly two filter field values.\n-1 can be used as infinity.\n\n\"from\" and \"size\" are used for pagination of search queries.\nIf we get 20 hits for a query, we can set \"from\" and \"size\" to 10\nto get the second half of hits.\n\nFilter examples:\n\n{\"creationTime\": [-1, \"2015-02-24T14:56\"]} <- all until 2015-02-24T14:56\n{\"format\": [\"csv\", \"json\"]} <- all CSV and JSON data sets\n\nField 'orgs' should be in a form of a list of org uuids separated with a coma\nexample: orguuid-01,oruuid-02\n\nFields 'onlyPublic' and 'onlyPrivate' should have boolean value (true or false).\nIn addition to a query, they allow to choose only private data sets or only public ones.\nThey are mutually exclusive!\n\nConsumer of this endpoint must have a valid OAuth token. Also, user has to be a member of the organization owning the data sets. This doesn't concern admins (console.admin in token's scope) who always have access. Moreover an admin owning the data sets being targeted by this request receives data from all orgs.",
                 "summary": "Do a search for data sets",
                 "operationId": "get_data_set_search_resource"
             }
@@ -72,6 +71,7 @@
                     "rest/datasets"
                 ],
                 "operationId": "get_data_set_count_resource",
+                "description": "Consumer of this endpoint must have a valid OAuth token. Also, user has to be a member of the organization owning the data sets. This doesn't concern admins (console.admin in token's scope) who always have access. Moreover an admin owning the data sets being targeted by this request receives data from all orgs.",
                 "responses": {
                     "200": {
                         "description": "Data set count returned.",
@@ -154,6 +154,8 @@
                     "application/x-www-form-urlencoded",
                     "multipart/form-data"
                 ],
+                "description": "Consumer of this endpoint must have a valid OAuth token. Also, user has to be a member of the organization owning the data sets. This doesn't concern admins (console.admin in token's scope) who always have access.",
+
                 "operationId": "put_metadata_entry_resource"
             },
             "post": {
@@ -192,7 +194,7 @@
                 "tags": [
                     "rest/datasets"
                 ],
-                "description": "The body of the POST method should be formed in a following way:\n\n{\n    \"argumentName\": [\"value01\", \"value02\"]\n}\n\nThe value of a given argument will replace current value for this argument\nin the specified metadata entry.\n\nExample:\n{\n    \"title\": \"A new, better title for this data set!\"\n}",
+                "description": "The body of the POST method should be formed in a following way:\n\n{\n    \"argumentName\": [\"value01\", \"value02\"]\n}\n\nThe value of a given argument will replace current value for this argument\nin the specified metadata entry.\n\nExample:\n{\n    \"title\": \"A new, better title for this data set!\"\n}\n\nConsumer of this endpoint must have a valid OAuth token. Also, user has to be a member of the organization owning the data set. This doesn't concern admins (console.admin in token's scope) who always have access.",
                 "summary": "Updates specified attributes of metadata entry with the given ID",
                 "operationId": "post_metadata_entry_resource"
             },
@@ -200,6 +202,8 @@
                 "tags": [
                     "rest/datasets"
                 ],
+                "description": "Consumer of this endpoint must have a valid OAuth token. Also, user has to be a member of the organization owning the data sets. This doesn't concern admins (console.admin in token's scope) who always have access.",
+
                 "operationId": "delete_metadata_entry_resource",
                 "responses": {
                     "200": {
@@ -236,6 +240,7 @@
                 "tags": [
                     "rest/datasets"
                 ],
+                "description": "Consumer of this endpoint must have a valid OAuth token. Also, user has to be a member of the organization owning the data sets. This doesn't concern admins (console.admin in token's scope) who always have access.",
                 "operationId": "get_metadata_entry_resource",
                 "responses": {
                     "200": {
