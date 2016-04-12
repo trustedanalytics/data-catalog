@@ -17,4 +17,4 @@ echo "commit_sha=$(git rev-parse HEAD)" > build_info.ini
 
 # assemble the artifact
 VERSION=$(grep current_version .bumpversion.cfg | cut -d " " -f 3)
-zip -r data-catalog-${VERSION}.zip $VENDOR data_catalog/ manifest.yml requirements.txt runtime.txt build_info.ini
+zip -r data-catalog-${VERSION}.zip $VENDOR data_catalog/ manifest.yml requirements.txt runtime.txt build_info.ini api_doc.json
