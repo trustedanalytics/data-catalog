@@ -13,7 +13,7 @@ mock==1.3.0
 mocket==1.2.4
 PyJWT==1.4.0
 pynats==0.0.1
-python-magic==0.4.10
+python-magic==0.4.11
 pytz==2015.7
 requests==2.8.1
 six==1.10.0
