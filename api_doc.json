@@ -3,7 +3,7 @@
         "application/json"
     ],
     "info": {
-        "version": "0.5.0",
+        "version": "0.5.1",
         "title": "Data Catalog API",
         "description": "Enables search, retrieval and storageof metadata describing data sets."
     },
