@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # Copyright (c) 2016 Intel Corporation
 #
@@ -15,4 +14,5 @@
 # limitations under the License.
 #
 
-gunicorn 'data_catalog.app:get_app()' --bind :5000 --enable-stdio-inheritance
+mvn -f license_checker/license_checker.xml license:check
+exit $?
