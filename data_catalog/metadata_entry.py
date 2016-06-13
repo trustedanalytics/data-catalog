@@ -164,6 +164,9 @@ class MetadataEntryResource(DataCatalogResource):
             self._notify(entry, 'Error durning parsing entry')
             abort(400, ex.value)
 
+        return self.add_data_set(entry_id, entry)
+
+    def add_data_set(self, entry_id, entry):
         try:
             response = self._elastic_search.index(
                 index=self._config.elastic.elastic_index,

@@ -22,7 +22,6 @@ from data_catalog.metadata_entry import (CERBERUS_SCHEMA, ORG_UUID_FIELD, CREATI
 
 
 class ElasticSearchQueryTranslator(object):
-
     def __init__(self):
         self._log = logging.getLogger(type(self).__name__)
         self._filter_translator = ElasticSearchFilterExtractor()
@@ -114,7 +113,6 @@ class ElasticSearchQueryTranslator(object):
 
 
 class ElasticSearchBaseQueryCreator(object):
-
     @staticmethod
     def create_base_query(query_dict):
         """
@@ -163,11 +161,11 @@ class ElasticSearchBaseQueryCreator(object):
 
 
 class ElasticSearchFilterExtractor(object):
-
     def __init__(self):
         self._log = logging.getLogger(type(self).__name__)
 
-    def extract_filter(self, query_dict, org_uuid_list, #pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches
+    def extract_filter(self, query_dict, org_uuid_list,
                        dataset_filtering, is_admin):
         """
         Creates a filter for the ElasticSearch query based on the filter information
@@ -180,9 +178,6 @@ class ElasticSearchFilterExtractor(object):
         """
         # TODO this should totally be rewritten to have less branches
         filters = query_dict.get('filters', [])
-        query_filters = []
-        post_filters = []
-        or_filters = []
 
         if dataset_filtering is DataSetFiltering.PRIVATE_AND_PUBLIC:
             if not is_admin or org_uuid_list:
@@ -195,6 +190,32 @@ class ElasticSearchFilterExtractor(object):
         else:
             filters.append({'isPublic': [True]})
 
+        result = self._filters_segregation(filters, dataset_filtering)
+        query_filters, post_filters, or_filters = result
+
+        return self._prepare_query_filters_dict(query_filters, post_filters, or_filters)
+
+    @staticmethod
+    def _prepare_query_filters_dict(query_filters, post_filters, or_filters):
+        if not query_filters and or_filters:
+            query_filters_dict = {'or': or_filters}
+        elif or_filters and query_filters:
+            query_filters.append({'or': or_filters})
+            query_filters_dict = {'and': query_filters}
+        elif not or_filters and query_filters:
+            query_filters_dict = {'and': query_filters}
+        else:
+            query_filters_dict = {}
+
+        if post_filters:
+            return query_filters_dict, {'and': post_filters}
+        else:
+            return query_filters_dict, {}
+
+    def _filters_segregation(self, filters, dataset_filtering):
+        query_filters = []
+        post_filters = []
+        or_filters = []
         # filters should be in form NAME: [VALUE, VALUE, ...]
         for data_set_filter in filters:
             filter_type, filter_values = self._get_filter_properties(data_set_filter)
@@ -219,20 +240,7 @@ class ElasticSearchFilterExtractor(object):
                     # filters that are applied AFTER the query (results are unfiltered)
                     post_filters.append(es_filter)
 
-        if not query_filters and or_filters:
-            query_filters_dict = {'or': or_filters}
-        elif or_filters and query_filters:
-            query_filters.append({'or': or_filters})
-            query_filters_dict = {'and': query_filters}
-        elif not or_filters and query_filters:
-            query_filters_dict = {'and': query_filters}
-        else:
-            query_filters_dict = {}
-
-        if post_filters:
-            return query_filters_dict, {'and': post_filters}
-        else:
-            return query_filters_dict, {}
+        return query_filters, post_filters, or_filters
 
     def _get_filter_properties(self, query_filter):
         """

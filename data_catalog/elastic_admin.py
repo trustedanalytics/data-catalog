@@ -46,7 +46,8 @@ class ElasticSearchAdminResource(DataCatalogResource):
         if not flask.g.is_admin:
             self._log.warn('Deleting index aborted, not enough privileges (admin required)')
             return None, 403
-        self._elastic_search.indices.delete( # pylint: disable=unexpected-keyword-arg
+        # pylint: disable=unexpected-keyword-arg
+        self._elastic_search.indices.delete(
             self._config.elastic.elastic_index,
             ignore=404)
 
