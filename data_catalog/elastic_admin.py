@@ -81,4 +81,3 @@ class ElasticSearchAdminResource(DataCatalogResource):
             return None, 503
         self._log.info("Data added")
         return None, 200
-

@@ -188,4 +188,3 @@ class ServiceUrlsConfig(object):
     def _find_by_name_in_service(services, name):
         found = [x for x in services['user-provided'] if x['name'] == name]
         return found[0] if found else {}
-

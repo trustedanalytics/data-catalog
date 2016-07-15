@@ -80,6 +80,3 @@ class DataCatalogModel(object):
 
         # flushing data - so immediate searches are aware of change
         self._elastic_search.indices.flush()
-
-
-

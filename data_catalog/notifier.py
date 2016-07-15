@@ -61,4 +61,3 @@ class CFNotifier(object):
     @staticmethod
     def _get_timestamp():
         return int(time.time()*1000)
-

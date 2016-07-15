@@ -46,4 +46,3 @@ class DataSetCountResource(DataCatalogResource):
         return self._search.search({}, flask.g.org_uuid_list,
                                    params['dataset_filtering'],
                                    flask.g.is_admin)['total']
-
