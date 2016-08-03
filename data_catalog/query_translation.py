@@ -83,6 +83,7 @@ class ElasticSearchQueryTranslator(object):
             'aggregations': {
                 'categories': {
                     'terms': {
+                        'size': 100,
                         'field': 'category'
                     }
                 },
