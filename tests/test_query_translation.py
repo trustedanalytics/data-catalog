@@ -447,11 +447,10 @@ class ElasticSearchBaseQueryCreationTests(TestCase):
             'bool': {
                 'should': [
                     {
-                        'match': {
+                        'wildcard': {
                             'title': {
-                                'query': TEXT,
-                                'boost': 3,
-                                'fuzziness': 1
+                                'value': '*{}*'.format(TEXT),
+                                'boost': 3
                             }
                         }
                     },

@@ -131,11 +131,10 @@ class ElasticSearchBaseQueryCreator(object):
                 'bool': {
                     'should': [
                         {
-                            'match': {
+                            'wildcard': {
                                 'title': {
-                                    'query': query_string,
-                                    'boost': 3,
-                                    'fuzziness': 1
+                                    'value': '*{}*'.format(query_string),
+                                    'boost': 3
                                 }
                             }
                         },
